@@ -54,7 +54,7 @@
         .app-container {
             display: flex;
             width: 100%;
-            max-width: 1280px; /* 전체 너비 제한 */
+            max-width: 1120px; /* 전체 너비 제한 변경 */
             margin: 40px auto; /* 좌우 auto로 중앙 정렬 */
             padding: 0 24px; /* 작은 화면용 내부 여백 */
             gap: 32px; /* 사이드바와 콘텐츠 사이 간격 */
@@ -334,7 +334,12 @@
         }
         td { padding: 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
         
-        .domain-cell { background: white; border-right: 1px solid var(--border); vertical-align: top; }
+        .domain-cell { 
+            background: white; 
+            border-right: 1px solid var(--border); 
+            vertical-align: top; 
+            text-align: center; /* 중앙 정렬 추가 */
+        }
         .badge-weight { 
             font-size: 10px; background: #F3F4F6; padding: 2px 6px; 
             border-radius: 4px; color: #4B5563; font-weight: 600; 
@@ -476,8 +481,8 @@
                         <table>
                             <thead>
                                 <tr>
-                                    <th style="width:14%">영역 (가중치)</th>
-                                    <th style="width:33%">역량 상세</th>
+                                    <th class="text-center" style="width:14%">영역 (가중치)</th>
+                                    <th class="text-center" style="width:33%">역량 상세</th>
                                     <th class="text-center" style="width:8%">중요도</th>
                                     <th class="text-center" style="width:35%">내 역량 (1~5)</th>
                                     <th class="text-center" style="width:10%">GAP</th>
@@ -693,11 +698,6 @@
                                onpointerup="${changeHandler}('${id}', parseInt(this.value))"
                         >
                     </div>
-                    ${type === 'suitability' ? 
-                    `<div style="display:flex; justify-content:space-between; margin-top:4px; font-size:10px; color:var(--text-muted);">
-                        <span>매우 그렇지 않다</span>
-                        <span>매우 그렇다</span>
-                    </div>` : ''}
                 </div>
             `;
         },
