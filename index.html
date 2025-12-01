@@ -205,7 +205,6 @@
             height: 120px;
             border-radius: 50%;
             border: 8px solid var(--primary-light);
-            /* Dynamic border handled in JS or via specific classes */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -215,7 +214,6 @@
             position: relative;
         }
         
-        /* CSS Trick for partial border color */
         .score-circle::after {
             content: '';
             position: absolute;
@@ -648,8 +646,6 @@
                 
                 category.items.forEach(item => {
                     const score = this.state.suitabilityScores[item.id] || 3;
-                    // Note: The 'value' attribute is for initialization. 
-                    // We also check class 'selected' if item.id exists in state keys to change style.
                     const isSelected = this.state.suitabilityScores.hasOwnProperty(item.id);
                     
                     html += `
@@ -668,7 +664,9 @@
                                            class="${isSelected ? 'selected' : ''}"
                                            id="input-${item.id}"
                                            oninput="app.handleSliderInput('${item.id}', this.value)"
-                                           onchange="app.setSuitabilityScore('${item.id}', parseInt(this.value))">
+                                           onchange="app.setSuitabilityScore('${item.id}', parseInt(this.value))"
+                                           onpointerup="app.setSuitabilityScore('${item.id}', parseInt(this.value))"
+                                    >
                                 </div>
                                 <div style="display:flex; justify-content:space-between; margin-top:4px; font-size:10px; color:var(--text-muted);">
                                     <span>매우 그렇지 않다</span>
@@ -705,7 +703,7 @@
             this.state.suitabilityScores[id] = score;
             localStorage.setItem('presales_suitability_scores', JSON.stringify(this.state.suitabilityScores));
             
-            // Sync Input if triggered by click on number
+            // Sync Input if triggered by click on number or external call
             const input = document.getElementById(`input-${id}`);
             if(input) {
                 input.value = score;
@@ -811,9 +809,6 @@
         setCompetencyScore: function(id, score) {
             this.state.competencyScores[id] = score;
             localStorage.setItem('presales_competency_scores', JSON.stringify(this.state.competencyScores));
-            
-            // Re-render whole table to update selections and gaps
-            // (For a larger app, we would update specific DOM elements, but this is fast enough)
             this.renderCompetencyTable();
             this.updateCompetencyAnalysis();
         },
