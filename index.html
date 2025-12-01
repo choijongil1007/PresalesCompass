@@ -6,24 +6,485 @@
     <title>Presales Compass</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { margin: 0; padding: 0; background: #F9FAFB; }
-        * { box-sizing: border-box; }
+        /* --- DualFit Premium SaaS Design System (Monochrome / Vanilla CSS) --- */
+        :root {
+          --primary: #111827; /* Gray 900 */
+          --primary-hover: #000000;
+          --primary-light: #F3F4F6; /* Gray 100 */
+          
+          --text-main: #111827;
+          --text-secondary: #4B5563;
+          --text-muted: #9CA3AF;
+          
+          --bg-body: #F9FAFB;
+          --bg-card: #FFFFFF;
+          --bg-sidebar: #FFFFFF;
+          
+          --border: #E5E7EB;
+          
+          --radius-lg: 16px;
+          --radius-md: 12px;
+          --radius-sm: 8px;
+          
+          --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+          --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+          margin: 0;
+          padding: 0;
+          font-family: 'Inter', -apple-system, sans-serif;
+          background: var(--bg-body);
+          color: var(--text-main);
+          -webkit-font-smoothing: antialiased;
+        }
+
+        /* Layout */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100%;
+            z-index: 50;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-box {
+            width: 36px;
+            height: 36px;
+            background: var(--primary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .app-title {
+            font-weight: 700;
+            font-size: 16px;
+            letter-spacing: -0.02em;
+        }
+
+        .sidebar-menu {
+            padding: 20px 12px;
+            flex: 1;
+        }
+
+        .menu-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            padding: 0 12px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 10px 12px;
+            margin-bottom: 4px;
+            border: none;
+            background: transparent;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            gap: 12px;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .menu-item:hover {
+            background: var(--bg-body);
+            color: var(--text-main);
+        }
+
+        .menu-item.active {
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 600;
+        }
+        
+        .active-indicator {
+            position: absolute;
+            right: 12px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--primary);
+            display: none;
+        }
+
+        .menu-item.active .active-indicator {
+            display: block;
+        }
+
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .avatar-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #E5E7EB;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        /* Main Area */
+        .main {
+            flex: 1;
+            margin-left: 260px;
+            padding: 48px 40px;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0 0 8px 0;
+            letter-spacing: -0.03em;
+        }
+
+        .page-subtitle {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin: 0 0 40px 0;
+        }
+
+        /* Cards */
+        .card-premium {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        /* Suitability Specific */
+        .score-overview-card {
+            display: flex;
+            padding: 32px;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 8px solid var(--primary-light);
+            /* Dynamic border handled in JS or via specific classes */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transform: rotate(45deg);
+            background: white;
+            position: relative;
+        }
+        
+        /* CSS Trick for partial border color */
+        .score-circle::after {
+            content: '';
+            position: absolute;
+            top: -8px; left: -8px; right: -8px; bottom: -8px;
+            border-radius: 50%;
+            border: 8px solid transparent;
+            border-top-color: var(--primary);
+            border-left-color: var(--primary);
+            pointer-events: none;
+        }
+
+        .score-circle > * { transform: rotate(-45deg); }
+
+        .score-number { font-size: 32px; font-weight: 800; line-height: 1; }
+        .score-unit { font-size: 12px; color: var(--text-muted); font-weight: 600; margin-top: 4px; }
+
+        .score-details { flex: 1; }
+        .progress-bar-track {
+            height: 8px;
+            background: #E5E7EB;
+            border-radius: 4px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .checklist-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            gap: 24px;
+        }
+        
+        .category-title {
+            background: #F9FAFB;
+            padding: 16px 24px;
+            margin: 0;
+            font-size: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* Slider */
+        .slider-container { width: 220px; }
+        .slider-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .slider-num { 
+            font-size: 12px; color: #D1D5DB; cursor: pointer; width: 20px; text-align: center; 
+            font-weight: 600; transition: all 0.2s; 
+        }
+        .slider-num.active { color: var(--primary); transform: scale(1.2); }
+        
+        .slider-track-wrapper { position: relative; height: 24px; display: flex; align-items: center; }
+        .track-bg { position: absolute; left: 0; right: 0; height: 4px; background: #E5E7EB; border-radius: 2px; }
+        .track-fill { 
+            position: absolute; left: 0; height: 4px; background: var(--primary); border-radius: 2px; 
+            transition: width 0.1s; pointer-events: none;
+        }
+        
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%; height: 24px; background: transparent; 
+            position: relative; z-index: 2; margin: 0; padding: 0; cursor: pointer;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px; width: 20px;
+            border-radius: 50%; background: #fff;
+            border: 2px solid #D1D5DB;
+            margin-top: -8px; /* Correctly center thumb on track (4px height) */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+        }
+        input[type="range"]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px; cursor: pointer; background: transparent; border: none;
+        }
+        input[type="range"].selected::-webkit-slider-thumb {
+            background: var(--primary); border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(17, 24, 39, 0.2);
+        }
+
+        /* Table & Competency */
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th { 
+            background: #F9FAFB; text-align: left; padding: 12px 16px; 
+            border-bottom: 1px solid var(--border); font-size: 12px; 
+            text-transform: uppercase; color: var(--text-secondary);
+        }
+        td { padding: 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        
+        .domain-cell { background: white; border-right: 1px solid var(--border); vertical-align: top; }
+        .badge-weight { 
+            font-size: 10px; background: #F3F4F6; padding: 2px 6px; 
+            border-radius: 4px; color: #4B5563; font-weight: 600; 
+        }
+        
+        .compact-selector { display: flex; gap: 4px; background: #F3F4F6; padding: 3px; border-radius: 8px; justify-content: center; }
+        .compact-btn {
+            width: 28px; height: 28px; border: none; background: transparent; border-radius: 6px;
+            font-size: 12px; font-weight: 600; color: #6B7280; cursor: pointer;
+        }
+        .compact-btn.selected { background: white; color: var(--primary); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        
+        .gap-badge { padding: 4px 10px; border-radius: 99px; font-size: 12px; font-weight: 700; }
+        .gap-high { background: var(--primary); color: white; }
+        .gap-low { background: #F3F4F6; color: #9CA3AF; }
+
+        /* Priority Cards */
+        .priority-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 24px; }
+        .priority-card { padding: 24px; position: relative; border-top: 4px solid var(--primary); transition: transform 0.2s; }
+        .priority-card:hover { transform: translateY(-2px); }
+        .rank-badge {
+            position: absolute; top: 16px; right: 16px; width: 32px; height: 32px;
+            background: var(--primary-light); color: var(--primary);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;
+        }
+
+        /* Utilities */
+        .hidden { display: none !important; }
+        .text-center { text-align: center; }
+        .legend-card { padding: 16px 24px; background: #F8FAFC; display: flex; gap: 20px; flex-wrap: wrap; }
+        .legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+        .legend-badge { 
+            width: 24px; height: 24px; border-radius: 6px; background: white; 
+            border: 1px solid #E2E8F0; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px;
+        }
+
+        /* Actions */
+        .action-area { text-align: right; margin-top: 40px; }
+        .btn-text { background: none; border: none; text-decoration: underline; cursor: pointer; color: var(--text-muted); }
     </style>
-<script type="importmap">
-{
-  "imports": {
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react": "https://aistudiocdn.com/react@^19.2.0"
-  }
-}
-</script>
 </head>
 <body>
-    <div id="root"></div>
-    <script type="module" src="./index.js"></script>
+    <div id="app" class="app-container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-box">
+                    <!-- Compass Icon SVG -->
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+                </div>
+                <span class="app-title">Presales Compass</span>
+            </div>
+            
+            <div class="sidebar-menu">
+                <div class="menu-label">MENU</div>
+                <button id="menu-suitability" class="menu-item active" onclick="app.navigate('suitability')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                    업무 적합성 체크리스트
+                    <div class="active-indicator"></div>
+                </button>
+                <button id="menu-competency" class="menu-item" onclick="app.navigate('competency')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                    역량 평가 및 학습
+                    <div class="active-indicator"></div>
+                </button>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="avatar-circle">U</div>
+                <div>
+                    <div style="font-size:13px; font-weight:600;">User Account</div>
+                    <div style="font-size:11px; color: var(--text-muted);">Premium Plan</div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main">
+            <!-- View: Suitability -->
+            <div id="view-suitability">
+                <h1>프리세일즈 업무 적합성 체크리스트</h1>
+                <p class="page-subtitle">본인의 성향과 역량이 프리세일즈 직무에 얼마나 부합하는지 진단해보세요.</p>
+                
+                <!-- Score Overview -->
+                <div class="card-premium score-overview-card">
+                    <div class="score-circle">
+                        <span id="suitability-total-score" class="score-number">0</span>
+                        <span class="score-unit">점</span>
+                    </div>
+                    <div class="score-details">
+                        <div style="font-size:14px; font-weight:600; color:var(--text-secondary); margin-bottom:12px; text-transform:uppercase;">현재 적합도 점수</div>
+                        <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:8px;">
+                            <span id="suitability-progress-text">진행률 (0/11)</span>
+                            <span id="suitability-progress-percent">0%</span>
+                        </div>
+                        <div class="progress-bar-track">
+                            <div id="suitability-progress-bar" class="progress-bar-fill"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Checklist Container -->
+                <div id="checklist-container">
+                    <!-- Javascript will populate this -->
+                </div>
+
+                <!-- Result Message -->
+                <div id="suitability-result" class="card-premium hidden" style="background:#F3F4F6; padding:24px;">
+                    <h3 style="margin:0 0 8px 0; font-size:18px;">진단 완료 🎉</h3>
+                    <p id="suitability-result-text" style="margin:0; color:var(--text-secondary); line-height:1.5;"></p>
+                </div>
+
+                <div class="action-area">
+                    <button class="btn-text" onclick="app.resetSuitability()">기록 초기화</button>
+                </div>
+            </div>
+
+            <!-- View: Competency -->
+            <div id="view-competency" class="hidden">
+                <h1>역량 평가 및 학습 우선순위</h1>
+                <p class="page-subtitle">현재 역량을 진단하고 GAP 분석을 통해 학습 우선순위를 도출합니다.</p>
+
+                <!-- Legend -->
+                <div class="card-premium legend-card" style="margin-bottom:24px;">
+                    <div style="font-weight:700; font-size:12px; color:var(--text-muted); width:100%; text-transform:uppercase;">평가 기준 가이드 (1~5점)</div>
+                    <div class="legend-item"><span class="legend-badge">1</span> 기술 없음</div>
+                    <div class="legend-item"><span class="legend-badge">2</span> 지식 있음</div>
+                    <div class="legend-item"><span class="legend-badge" style="background:#9CA3AF; color:white; border:none;">3</span> 숙련</div>
+                    <div class="legend-item"><span class="legend-badge" style="background:#4B5563; color:white; border:none;">4</span> 고급</div>
+                    <div class="legend-item"><span class="legend-badge" style="background:var(--primary); color:white; border:none;">5</span> 전문가</div>
+                </div>
+
+                <!-- Table -->
+                <div class="card-premium">
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width:15%">영역 (가중치)</th>
+                                    <th style="width:40%">역량 상세</th>
+                                    <th class="text-center" style="width:10%">중요도</th>
+                                    <th class="text-center" style="width:25%">내 역량 (1~5)</th>
+                                    <th class="text-center" style="width:10%">GAP</th>
+                                </tr>
+                            </thead>
+                            <tbody id="competency-table-body">
+                                <!-- JS Populated -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Top 3 Priorities -->
+                <div id="priority-section" class="hidden">
+                    <div style="display:flex; align-items:center; gap:12px; margin-top:48px;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#111827" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                        <h3 style="font-size:20px; margin:0;">학습 우선순위 TOP 3</h3>
+                    </div>
+                    <p style="color:var(--text-secondary); margin-bottom:24px;">다음 역량을 먼저 개발하면 가장 큰 성장을 이룰 수 있습니다.</p>
+                    <div id="priority-list" class="priority-grid">
+                        <!-- JS Populated -->
+                    </div>
+                </div>
+
+                <div class="action-area">
+                    <button class="btn-text" onclick="app.resetCompetency()">평가 초기화</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Application Logic -->
+    <script src="./index.js"></script>
 </body>
 </html>
