@@ -357,11 +357,11 @@
         /* Utilities */
         .hidden { display: none !important; }
         .text-center { text-align: center; }
-        .legend-card { padding: 16px 24px; background: #F8FAFC; display: flex; gap: 20px; flex-wrap: wrap; }
-        .legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+        .legend-card { padding: 16px 24px; background: #F8FAFC; display: flex; gap: 20px; flex-wrap: wrap; border:1px solid #E2E8F0; }
+        .legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); }
         .legend-badge { 
             width: 24px; height: 24px; border-radius: 6px; background: white; 
-            border: 1px solid #E2E8F0; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px;
+            border: 1px solid #E2E8F0; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; color: var(--text-main);
         }
 
         /* Actions */
@@ -416,7 +416,7 @@
                     <div style="font-weight:700; font-size:12px; color:var(--text-muted); width:100%; text-transform:uppercase;">평가 기준 가이드 (1~5점)</div>
                     <div class="legend-item"><span class="legend-badge">1</span> 매우 그렇지 않다</div>
                     <div class="legend-item"><span class="legend-badge">2</span> 그렇지 않다</div>
-                    <div class="legend-item"><span class="legend-badge" style="background:#E5E7EB; color:var(--text-secondary); border:none;">3</span> 보통</div>
+                    <div class="legend-item"><span class="legend-badge" style="background:#E5E7EB; border:none;">3</span> 보통</div>
                     <div class="legend-item"><span class="legend-badge" style="background:#9CA3AF; color:white; border:none;">4</span> 그렇다</div>
                     <div class="legend-item"><span class="legend-badge" style="background:var(--primary); color:white; border:none;">5</span> 매우 그렇다</div>
                 </div>
@@ -465,7 +465,7 @@
                     <div style="font-weight:700; font-size:12px; color:var(--text-muted); width:100%; text-transform:uppercase;">평가 기준 가이드 (1~5점)</div>
                     <div class="legend-item"><span class="legend-badge">1</span> 기술 없음</div>
                     <div class="legend-item"><span class="legend-badge">2</span> 지식 있음</div>
-                    <div class="legend-item"><span class="legend-badge" style="background:#E5E7EB; color:var(--text-secondary); border:none;">3</span> 숙련</div>
+                    <div class="legend-item"><span class="legend-badge" style="background:#E5E7EB; border:none;">3</span> 숙련</div>
                     <div class="legend-item"><span class="legend-badge" style="background:#9CA3AF; color:white; border:none;">4</span> 고급</div>
                     <div class="legend-item"><span class="legend-badge" style="background:var(--primary); color:white; border:none;">5</span> 전문가</div>
                 </div>
@@ -477,9 +477,9 @@
                             <thead>
                                 <tr>
                                     <th style="width:14%">영역 (가중치)</th>
-                                    <th style="width:36%">역량 상세</th>
+                                    <th style="width:33%">역량 상세</th>
                                     <th class="text-center" style="width:8%">중요도</th>
-                                    <th class="text-center" style="width:32%">내 역량 (1~5)</th>
+                                    <th class="text-center" style="width:35%">내 역량 (1~5)</th>
                                     <th class="text-center" style="width:10%">GAP</th>
                                 </tr>
                             </thead>
@@ -669,9 +669,14 @@
                 : `app.setCompetencyScore`;
             
             const handleInput = `app.handleSliderInput('${id}', this.value)`;
+            
+            // Layout Adjustments for Table context
+            const containerStyle = type === 'competency' 
+                ? 'width:100%; max-width:260px; margin:0 auto;' 
+                : '';
 
             return `
-                <div class="slider-container" style="${type === 'competency' ? 'width:100%; max-width:240px; margin:0 auto;' : ''}">
+                <div class="slider-container" style="${containerStyle}">
                     <div class="slider-header" id="header-${id}">
                         ${[1,2,3,4,5].map(n => 
                             `<div class="slider-num ${score === n ? 'active' : ''}" onclick="${changeHandler}('${id}', ${n})">${n}</div>`
@@ -863,16 +868,10 @@
                 this.handleSliderInput(id, score); // Update visuals
             }
             
-            // Re-render table completely to update GAPs (simpler than selective DOM update for table rows)
-            // But to keep slider interaction smooth, we only update GAP cells if possible? 
-            // For simplicity in this vanilla implementation, we re-render the whole table or just update the logic.
-            // Since re-rendering might break the drag interaction if done mid-drag, we rely on 'onchange' (end of drag) to re-render data.
-            // visual update is handled by handleSliderInput.
-            
-            // We'll update the stats/gap analysis immediately.
+            // Update Stats
             this.updateCompetencyAnalysis();
             
-            // OPTIONAL: Update the specific GAP cell without full re-render
+            // Update GAP cell for this row specifically
             this.updateGapCell(id, score);
         },
         
