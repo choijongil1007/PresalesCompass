@@ -48,7 +48,6 @@
           color: var(--text-main);
           -webkit-font-smoothing: antialiased;
           min-height: 100vh;
-          /* Flex display removed from body to use margin auto on container */
         }
 
         /* Layout Container - Centering Logic */
@@ -288,7 +287,7 @@
         }
 
         /* Slider */
-        .slider-container { width: 220px; }
+        .slider-container { width: 220px; flex-shrink: 0; }
         .slider-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
         .slider-num { 
             font-size: 12px; color: #D1D5DB; cursor: pointer; width: 20px; text-align: center; 
@@ -340,13 +339,6 @@
             font-size: 10px; background: #F3F4F6; padding: 2px 6px; 
             border-radius: 4px; color: #4B5563; font-weight: 600; 
         }
-        
-        .compact-selector { display: flex; gap: 4px; background: #F3F4F6; padding: 3px; border-radius: 8px; justify-content: center; }
-        .compact-btn {
-            width: 28px; height: 28px; border: none; background: transparent; border-radius: 6px;
-            font-size: 12px; font-weight: 600; color: #6B7280; cursor: pointer;
-        }
-        .compact-btn.selected { background: white; color: var(--primary); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
         
         .gap-badge { padding: 4px 10px; border-radius: 99px; font-size: 12px; font-weight: 700; }
         .gap-high { background: var(--primary); color: white; }
@@ -419,6 +411,16 @@
                 <h1>프리세일즈 업무 적합성 체크리스트</h1>
                 <p class="page-subtitle">본인의 성향과 역량이 프리세일즈 직무에 얼마나 부합하는지 진단해보세요.</p>
                 
+                <!-- Legend for Suitability -->
+                <div class="card-premium legend-card" style="margin-bottom:24px;">
+                    <div style="font-weight:700; font-size:12px; color:var(--text-muted); width:100%; text-transform:uppercase;">평가 기준 가이드 (1~5점)</div>
+                    <div class="legend-item"><span class="legend-badge">1</span> 매우 그렇지 않다</div>
+                    <div class="legend-item"><span class="legend-badge">2</span> 그렇지 않다</div>
+                    <div class="legend-item"><span class="legend-badge" style="background:#E5E7EB; color:var(--text-secondary); border:none;">3</span> 보통</div>
+                    <div class="legend-item"><span class="legend-badge" style="background:#9CA3AF; color:white; border:none;">4</span> 그렇다</div>
+                    <div class="legend-item"><span class="legend-badge" style="background:var(--primary); color:white; border:none;">5</span> 매우 그렇다</div>
+                </div>
+
                 <!-- Score Overview -->
                 <div class="card-premium score-overview-card">
                     <div class="score-circle">
@@ -458,13 +460,13 @@
                 <h1>역량 평가 및 학습 우선순위</h1>
                 <p class="page-subtitle">현재 역량을 진단하고 GAP 분석을 통해 학습 우선순위를 도출합니다.</p>
 
-                <!-- Legend -->
+                <!-- Legend for Competency -->
                 <div class="card-premium legend-card" style="margin-bottom:24px;">
                     <div style="font-weight:700; font-size:12px; color:var(--text-muted); width:100%; text-transform:uppercase;">평가 기준 가이드 (1~5점)</div>
                     <div class="legend-item"><span class="legend-badge">1</span> 기술 없음</div>
                     <div class="legend-item"><span class="legend-badge">2</span> 지식 있음</div>
-                    <div class="legend-item"><span class="legend-badge" style="background:#9CA3AF; color:white; border:none;">3</span> 숙련</div>
-                    <div class="legend-item"><span class="legend-badge" style="background:#4B5563; color:white; border:none;">4</span> 고급</div>
+                    <div class="legend-item"><span class="legend-badge" style="background:#E5E7EB; color:var(--text-secondary); border:none;">3</span> 숙련</div>
+                    <div class="legend-item"><span class="legend-badge" style="background:#9CA3AF; color:white; border:none;">4</span> 고급</div>
                     <div class="legend-item"><span class="legend-badge" style="background:var(--primary); color:white; border:none;">5</span> 전문가</div>
                 </div>
 
@@ -474,10 +476,10 @@
                         <table>
                             <thead>
                                 <tr>
-                                    <th style="width:15%">영역 (가중치)</th>
-                                    <th style="width:40%">역량 상세</th>
-                                    <th class="text-center" style="width:10%">중요도</th>
-                                    <th class="text-center" style="width:25%">내 역량 (1~5)</th>
+                                    <th style="width:14%">영역 (가중치)</th>
+                                    <th style="width:36%">역량 상세</th>
+                                    <th class="text-center" style="width:8%">중요도</th>
+                                    <th class="text-center" style="width:32%">내 역량 (1~5)</th>
                                     <th class="text-center" style="width:10%">GAP</th>
                                 </tr>
                             </thead>
@@ -656,6 +658,68 @@
             document.getElementById(`view-${viewName}`).classList.remove('hidden');
         },
 
+        // --- Shared Slider Logic ---
+        
+        // Generates the HTML for a slider. 
+        // type: 'suitability' or 'competency'
+        generateSliderHTML: function(id, score, isSelected, type) {
+            // Determine the onclick and oninput handlers based on type
+            const changeHandler = type === 'suitability' 
+                ? `app.setSuitabilityScore` 
+                : `app.setCompetencyScore`;
+            
+            const handleInput = `app.handleSliderInput('${id}', this.value)`;
+
+            return `
+                <div class="slider-container" style="${type === 'competency' ? 'width:100%; max-width:240px; margin:0 auto;' : ''}">
+                    <div class="slider-header" id="header-${id}">
+                        ${[1,2,3,4,5].map(n => 
+                            `<div class="slider-num ${score === n ? 'active' : ''}" onclick="${changeHandler}('${id}', ${n})">${n}</div>`
+                        ).join('')}
+                    </div>
+                    <div class="slider-track-wrapper">
+                        <div class="track-bg"></div>
+                        <div class="track-fill" id="fill-${id}" style="width: ${((score-1)/4)*100}%; opacity:${isSelected ? 1 : 0.3}"></div>
+                        <input type="range" min="1" max="5" step="1" value="${score}" 
+                               class="${isSelected ? 'selected' : ''}"
+                               id="input-${id}"
+                               oninput="${handleInput}"
+                               onchange="${changeHandler}('${id}', parseInt(this.value))"
+                               onpointerup="${changeHandler}('${id}', parseInt(this.value))"
+                        >
+                    </div>
+                    ${type === 'suitability' ? 
+                    `<div style="display:flex; justify-content:space-between; margin-top:4px; font-size:10px; color:var(--text-muted);">
+                        <span>매우 그렇지 않다</span>
+                        <span>매우 그렇다</span>
+                    </div>` : ''}
+                </div>
+            `;
+        },
+
+        handleSliderInput: function(id, val) {
+            const score = parseInt(val);
+            const fillPercent = ((score - 1) / 4) * 100;
+            
+            const fillEl = document.getElementById(`fill-${id}`);
+            const inputEl = document.getElementById(`input-${id}`);
+            
+            if(fillEl && inputEl) {
+                fillEl.style.width = `${fillPercent}%`;
+                fillEl.style.opacity = '1';
+                inputEl.classList.add('selected');
+            }
+            
+            // Update header numbers active state
+            const header = document.getElementById(`header-${id}`);
+            if(header) {
+                Array.from(header.children).forEach((child, idx) => {
+                    if (idx + 1 === score) child.classList.add('active');
+                    else child.classList.remove('active');
+                });
+            }
+        },
+
         // --- Suitability Logic ---
 
         renderSuitabilityChecklist: function() {
@@ -676,28 +740,7 @@
                     html += `
                         <div class="checklist-row">
                             <div style="flex:1; font-size:15px; font-weight:500; color:var(--text-secondary); line-height:1.5;">${item.text}</div>
-                            <div class="slider-container">
-                                <div class="slider-header" id="header-${item.id}">
-                                    ${[1,2,3,4,5].map(n => 
-                                        `<div class="slider-num ${score === n ? 'active' : ''}" onclick="app.setSuitabilityScore('${item.id}', ${n})">${n}</div>`
-                                    ).join('')}
-                                </div>
-                                <div class="slider-track-wrapper">
-                                    <div class="track-bg"></div>
-                                    <div class="track-fill" id="fill-${item.id}" style="width: ${((score-1)/4)*100}%; opacity:${isSelected ? 1 : 0.3}"></div>
-                                    <input type="range" min="1" max="5" step="1" value="${score}" 
-                                           class="${isSelected ? 'selected' : ''}"
-                                           id="input-${item.id}"
-                                           oninput="app.handleSliderInput('${item.id}', this.value)"
-                                           onchange="app.setSuitabilityScore('${item.id}', parseInt(this.value))"
-                                           onpointerup="app.setSuitabilityScore('${item.id}', parseInt(this.value))"
-                                    >
-                                </div>
-                                <div style="display:flex; justify-content:space-between; margin-top:4px; font-size:10px; color:var(--text-muted);">
-                                    <span>매우 그렇지 않다</span>
-                                    <span>매우 그렇다</span>
-                                </div>
-                            </div>
+                            ${this.generateSliderHTML(item.id, score, isSelected, 'suitability')}
                         </div>
                     `;
                 });
@@ -706,22 +749,6 @@
             });
 
             container.innerHTML = html;
-        },
-
-        handleSliderInput: function(id, val) {
-            // Visual update only during drag
-            const score = parseInt(val);
-            const fillPercent = ((score - 1) / 4) * 100;
-            document.getElementById(`fill-${id}`).style.width = `${fillPercent}%`;
-            document.getElementById(`fill-${id}`).style.opacity = '1';
-            document.getElementById(`input-${id}`).classList.add('selected');
-            
-            // Update header numbers active state
-            const header = document.getElementById(`header-${id}`);
-            Array.from(header.children).forEach((child, idx) => {
-                if (idx + 1 === score) child.classList.add('active');
-                else child.classList.remove('active');
-            });
         },
 
         setSuitabilityScore: function(id, score) {
@@ -788,8 +815,9 @@
 
             COMPETENCY_DATA.forEach(domain => {
                 domain.items.forEach((item, idx) => {
-                    const currentScore = this.state.competencyScores[item.id];
-                    const gap = currentScore ? (domain.weight * item.importance * (item.importance - currentScore)) : null;
+                    const currentScore = this.state.competencyScores[item.id] || 3;
+                    const isSelected = this.state.competencyScores.hasOwnProperty(item.id);
+                    const gap = this.state.competencyScores[item.id] ? (domain.weight * item.importance * (item.importance - currentScore)) : null;
                     
                     html += `<tr>`;
                     
@@ -810,14 +838,7 @@
                             ${item.importance}
                         </td>
                         <td class="text-center">
-                            <div class="compact-selector">
-                                ${[1,2,3,4,5].map(n => `
-                                    <button class="compact-btn ${currentScore === n ? 'selected' : ''}" 
-                                            onclick="app.setCompetencyScore('${item.id}', ${n})">
-                                        ${n}
-                                    </button>
-                                `).join('')}
-                            </div>
+                            ${this.generateSliderHTML(item.id, currentScore, isSelected, 'competency')}
                         </td>
                         <td class="text-center">
                             ${gap !== null ? `<span class="gap-badge ${gap > 0 ? 'gap-high' : 'gap-low'}">${gap.toFixed(0)}</span>` : '-'}
@@ -834,8 +855,45 @@
         setCompetencyScore: function(id, score) {
             this.state.competencyScores[id] = score;
             localStorage.setItem('presales_competency_scores', JSON.stringify(this.state.competencyScores));
-            this.renderCompetencyTable();
+            
+             // Sync Input if triggered by click on number or external call
+            const input = document.getElementById(`input-${id}`);
+            if(input) {
+                input.value = score;
+                this.handleSliderInput(id, score); // Update visuals
+            }
+            
+            // Re-render table completely to update GAPs (simpler than selective DOM update for table rows)
+            // But to keep slider interaction smooth, we only update GAP cells if possible? 
+            // For simplicity in this vanilla implementation, we re-render the whole table or just update the logic.
+            // Since re-rendering might break the drag interaction if done mid-drag, we rely on 'onchange' (end of drag) to re-render data.
+            // visual update is handled by handleSliderInput.
+            
+            // We'll update the stats/gap analysis immediately.
             this.updateCompetencyAnalysis();
+            
+            // OPTIONAL: Update the specific GAP cell without full re-render
+            this.updateGapCell(id, score);
+        },
+        
+        updateGapCell: function(itemId, score) {
+            // Find domain and item to calc gap
+            let domain, item;
+            for(const d of COMPETENCY_DATA) {
+                const i = d.items.find(it => it.id === itemId);
+                if(i) { domain = d; item = i; break; }
+            }
+            
+            if(domain && item) {
+                const gap = domain.weight * item.importance * (item.importance - score);
+                // Find the row. It's the parent TR of the input
+                const inputEl = document.getElementById(`input-${itemId}`);
+                if(inputEl) {
+                    const tr = inputEl.closest('tr');
+                    const gapCell = tr.lastElementChild;
+                    gapCell.innerHTML = `<span class="gap-badge ${gap > 0 ? 'gap-high' : 'gap-low'}">${gap.toFixed(0)}</span>`;
+                }
+            }
         },
 
         updateCompetencyAnalysis: function() {
