@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Presales Compass</title>
+    <!-- Prevent 404 for favicon -->
+    <link rel="icon" href="data:,">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -33,6 +35,11 @@
           --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
 
+        /* Global Reset */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
         body {
           margin: 0;
           padding: 0;
@@ -41,16 +48,16 @@
           color: var(--text-main);
           -webkit-font-smoothing: antialiased;
           min-height: 100vh;
-          display: flex;
-          justify-content: center; /* 화면 전체 중앙 정렬 */
+          /* Flex display removed from body to use margin auto on container */
         }
 
-        /* Layout Container */
+        /* Layout Container - Centering Logic */
         .app-container {
             display: flex;
             width: 100%;
             max-width: 1280px; /* 전체 너비 제한 */
-            margin: 40px 24px; /* 상하 여백 및 모바일 좌우 여백 */
+            margin: 40px auto; /* 좌우 auto로 중앙 정렬 */
+            padding: 0 24px; /* 작은 화면용 내부 여백 */
             gap: 32px; /* 사이드바와 콘텐츠 사이 간격 */
             align-items: flex-start; /* 상단 정렬 */
         }
@@ -178,7 +185,6 @@
         /* Main Area */
         .main {
             flex: 1;
-            /* margin-left 제거 및 너비 자동 조절 */
             width: 100%; 
             min-width: 0; /* Flex overflow 방지 */
         }
