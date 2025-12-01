@@ -74,7 +74,7 @@
             position: sticky; /* 스크롤 시 따라옴 */
             top: 40px;
             height: fit-content;
-            min-height: 400px;
+            /* min-height removed to fit content */
             z-index: 50;
         }
 
@@ -161,13 +161,7 @@
             display: block;
         }
 
-        .sidebar-footer {
-            padding: 20px;
-            border-top: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+        /* Sidebar Footer Removed */
 
         .avatar-circle {
             width: 32px;
@@ -188,6 +182,13 @@
             min-width: 0; /* Flex overflow 방지 */
         }
 
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+        }
+
         h1 {
             font-size: 28px;
             font-weight: 700;
@@ -198,7 +199,7 @@
         .page-subtitle {
             font-size: 16px;
             color: var(--text-secondary);
-            margin: 0 0 40px 0;
+            margin: 0;
         }
 
         /* Cards */
@@ -370,8 +371,24 @@
         }
 
         /* Actions */
-        .action-area { text-align: right; margin-top: 40px; }
-        .btn-text { background: none; border: none; text-decoration: underline; cursor: pointer; color: var(--text-muted); }
+        .btn-reset {
+            background: white;
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            margin-left: 16px;
+        }
+        .btn-reset:hover {
+            background: #F3F4F6;
+            color: var(--primary);
+            border-color: #D1D5DB;
+        }
     </style>
 </head>
 <body>
@@ -399,22 +416,20 @@
                     <div class="active-indicator"></div>
                 </button>
             </div>
-
-            <div class="sidebar-footer">
-                <div class="avatar-circle">U</div>
-                <div>
-                    <div style="font-size:13px; font-weight:600;">User Account</div>
-                    <div style="font-size:11px; color: var(--text-muted);">Premium Plan</div>
-                </div>
-            </div>
+            <!-- Sidebar Footer Removed -->
         </nav>
 
         <!-- Main Content -->
         <main class="main">
             <!-- View: Suitability -->
             <div id="view-suitability">
-                <h1>프리세일즈 업무 적합성 체크리스트</h1>
-                <p class="page-subtitle">본인의 성향과 역량이 프리세일즈 직무에 얼마나 부합하는지 진단해보세요.</p>
+                <div class="page-header">
+                    <div>
+                        <h1>프리세일즈 업무 적합성 체크리스트</h1>
+                        <p class="page-subtitle">본인의 성향과 역량이 프리세일즈 직무에 얼마나 부합하는지 진단해보세요.</p>
+                    </div>
+                    <button class="btn-reset" onclick="app.resetSuitability()">평가 초기화</button>
+                </div>
                 
                 <!-- Legend for Suitability -->
                 <div class="card-premium legend-card" style="margin-bottom:24px;">
@@ -454,16 +469,17 @@
                     <h3 style="margin:0 0 8px 0; font-size:18px;">진단 완료 🎉</h3>
                     <p id="suitability-result-text" style="margin:0; color:var(--text-secondary); line-height:1.5;"></p>
                 </div>
-
-                <div class="action-area">
-                    <button class="btn-text" onclick="app.resetSuitability()">기록 초기화</button>
-                </div>
             </div>
 
             <!-- View: Competency -->
             <div id="view-competency" class="hidden">
-                <h1>역량 평가 및 학습 우선순위</h1>
-                <p class="page-subtitle">현재 역량을 진단하고 GAP 분석을 통해 학습 우선순위를 도출합니다.</p>
+                <div class="page-header">
+                    <div>
+                        <h1>역량 평가 및 학습 우선순위</h1>
+                        <p class="page-subtitle">현재 역량을 진단하고 GAP 분석을 통해 학습 우선순위를 도출합니다.</p>
+                    </div>
+                    <button class="btn-reset" onclick="app.resetCompetency()">평가 초기화</button>
+                </div>
 
                 <!-- Legend for Competency -->
                 <div class="card-premium legend-card" style="margin-bottom:24px;">
@@ -505,10 +521,6 @@
                     <div id="priority-list" class="priority-grid">
                         <!-- JS Populated -->
                     </div>
-                </div>
-
-                <div class="action-area">
-                    <button class="btn-text" onclick="app.resetCompetency()">평가 초기화</button>
                 </div>
             </div>
         </main>
