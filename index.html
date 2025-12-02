@@ -360,6 +360,21 @@
             border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;
         }
 
+        /* Report Styles */
+        .report-empty-state {
+            padding: 60px 20px;
+            text-align: center;
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px dashed #D1D5DB;
+        }
+        .report-section-title {
+            font-size: 18px; font-weight: 700; margin: 32px 0 16px; border-left: 4px solid var(--primary); padding-left: 12px;
+        }
+        .report-stat-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #F3F4F6; font-size: 14px; }
+        .report-stat-label { color: var(--text-secondary); }
+        .report-stat-value { font-weight: 600; color: var(--primary); }
+
         /* Utilities */
         .hidden { display: none !important; }
         .text-center { text-align: center; }
@@ -413,6 +428,11 @@
                 <button id="menu-competency" class="menu-item" onclick="app.navigate('competency')">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
                     역량 평가 및 학습
+                    <div class="active-indicator"></div>
+                </button>
+                <button id="menu-report" class="menu-item" onclick="app.navigate('report')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    종합 결과 보고서
                     <div class="active-indicator"></div>
                 </button>
             </div>
@@ -523,6 +543,22 @@
                     </div>
                 </div>
             </div>
+
+            <!-- View: Report -->
+            <div id="view-report" class="hidden">
+                 <div class="page-header">
+                    <div>
+                        <h1>종합 결과 보고서</h1>
+                        <p class="page-subtitle">두 가지 진단 결과를 종합하여 분석된 내용을 확인하세요.</p>
+                    </div>
+                    <!-- No Reset needed here -->
+                </div>
+
+                <div id="report-content">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
         </main>
     </div>
 
@@ -672,7 +708,14 @@
             // Update Main View UI
             document.getElementById('view-suitability').classList.add('hidden');
             document.getElementById('view-competency').classList.add('hidden');
+            document.getElementById('view-report').classList.add('hidden');
+            
             document.getElementById(`view-${viewName}`).classList.remove('hidden');
+
+            // Trigger logic for report
+            if (viewName === 'report') {
+                this.renderReport();
+            }
         },
 
         // --- Shared Slider Logic ---
@@ -951,6 +994,7 @@
             } else {
                 prioritySection.classList.add('hidden');
             }
+            return top3;
         },
 
         resetCompetency: function() {
@@ -960,6 +1004,118 @@
                 this.renderCompetencyTable();
                 this.updateCompetencyAnalysis();
             }
+        },
+
+        // --- Report Logic ---
+        renderReport: function() {
+            const container = document.getElementById('report-content');
+            
+            // 1. Check Completion
+            const totalSuitability = 11;
+            const filledSuitability = Object.keys(this.state.suitabilityScores).length;
+            
+            let totalCompetency = 0;
+            COMPETENCY_DATA.forEach(d => totalCompetency += d.items.length); // Should be 20
+            const filledCompetency = Object.keys(this.state.competencyScores).length;
+
+            const isComplete = (filledSuitability === totalSuitability) && (filledCompetency === totalCompetency);
+
+            if (!isComplete) {
+                container.innerHTML = `
+                    <div class="report-empty-state">
+                        <div style="font-size:48px; margin-bottom:16px;">⏳</div>
+                        <h3 style="font-size:20px; font-weight:700; margin-bottom:12px;">평가가 완료되지 않았습니다</h3>
+                        <p style="color:var(--text-secondary); margin-bottom:32px;">두 가지 진단을 모두 완료해야 종합 보고서를 확인할 수 있습니다.</p>
+                        
+                        <div style="max-width:400px; margin:0 auto; text-align:left;">
+                            <div class="report-stat-row">
+                                <span>업무 적합성 체크리스트</span>
+                                <span style="color:${filledSuitability === totalSuitability ? 'var(--primary)' : 'orange'}">
+                                    ${filledSuitability} / ${totalSuitability} 완료
+                                </span>
+                            </div>
+                            <div class="report-stat-row" style="border:none;">
+                                <span>역량 평가 및 학습</span>
+                                <span style="color:${filledCompetency === totalCompetency ? 'var(--primary)' : 'orange'}">
+                                    ${filledCompetency} / ${totalCompetency} 완료
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            // 2. Generate Report Content
+            // 2.1 Suitability Summary
+            const suitSum = Object.values(this.state.suitabilityScores).reduce((a,b)=>a+b, 0);
+            const suitScore = Math.round((suitSum / (totalSuitability * 5)) * 100);
+            
+            let suitFeedback = "";
+            if(suitScore >= 80) suitFeedback = "매우 적합";
+            else if(suitScore >= 60) suitFeedback = "적합 (잠재력 있음)";
+            else suitFeedback = "보완 필요";
+
+            // 2.2 Competency Top 3
+            const priorities = this.updateCompetencyAnalysis(); // Returns top 3 array if we modify functionality or re-calculate
+            
+            // Re-calc specific for report as updateCompetencyAnalysis modifies DOM primarily
+            const priorityList = [];
+             COMPETENCY_DATA.forEach(domain => {
+                domain.items.forEach(item => {
+                    const current = this.state.competencyScores[item.id];
+                    if (current) {
+                        const gap = domain.weight * item.importance * (item.importance - current);
+                        if (gap > 0) {
+                            priorityList.push({ domain: domain.name, text: item.text, gap: gap });
+                        }
+                    }
+                });
+            });
+            priorityList.sort((a,b) => b.gap - a.gap);
+            const top3 = priorityList.slice(0, 3);
+
+            // Render
+            container.innerHTML = `
+                <div class="card-premium" style="padding:32px;">
+                    <h2 class="report-section-title" style="margin-top:0;">1. 프리세일즈 업무 적합성 요약</h2>
+                    <div style="display:flex; gap:32px; align-items:center; margin-bottom:24px;">
+                        <div style="flex:1;">
+                            <div class="report-stat-row">
+                                <span class="report-stat-label">종합 점수</span>
+                                <span class="report-stat-value" style="font-size:18px;">${suitScore}점 / 100점</span>
+                            </div>
+                            <div class="report-stat-row">
+                                <span class="report-stat-label">진단 결과</span>
+                                <span class="report-stat-value">${suitFeedback}</span>
+                            </div>
+                        </div>
+                         <!-- Simple Visual for Score -->
+                         <div style="width:100px; height:100px; background:var(--primary); border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-weight:800; font-size:24px;">
+                            ${suitScore}
+                         </div>
+                    </div>
+
+                    <h2 class="report-section-title">2. 역량 평가 및 학습 우선순위 요약</h2>
+                    <p style="color:var(--text-secondary); font-size:14px; margin-bottom:16px;">
+                        가장 시급하게 개발해야 할 Top 3 역량입니다. 이 항목들을 중심으로 학습 계획을 수립하세요.
+                    </p>
+                    
+                    <div style="display:flex; flex-direction:column; gap:12px;">
+                        ${top3.map((p, idx) => `
+                            <div style="background:#F9FAFB; padding:16px; border-radius:8px; border:1px solid #E5E7EB;">
+                                <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                                    <span style="font-size:12px; font-weight:700; color:var(--primary); text-transform:uppercase;">Priority ${idx+1}</span>
+                                    <span style="font-size:12px; font-weight:600; color:var(--text-muted);">GAP ${p.gap.toFixed(0)}</span>
+                                </div>
+                                <div style="font-weight:600; font-size:15px;">${p.text}</div>
+                                <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">${p.domain}</div>
+                            </div>
+                        `).join('')}
+                        ${top3.length === 0 ? '<div style="padding:10px; color:var(--text-muted);">보완이 필요한 역량이 없습니다. 훌륭합니다!</div>' : ''}
+                    </div>
+                </div>
+            `;
         }
     };
 
