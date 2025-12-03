@@ -13,6 +13,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <!-- Chart.js Library -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chart.js DataLabels Plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <style>
         /* --- DualFit Premium SaaS Design System (Monochrome / Vanilla CSS) --- */
         :root {
@@ -1194,6 +1196,7 @@
                                 pointHoverBorderColor: '#111827'
                             }]
                         },
+                        plugins: [ChartDataLabels],
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
@@ -1216,9 +1219,8 @@
                                     suggestedMin: 0,
                                     suggestedMax: 100,
                                     ticks: {
-                                        stepSize: 20,
-                                        backdropColor: 'transparent',
-                                        showLabelBackdrop: false
+                                        display: false,
+                                        stepSize: 20
                                     }
                                 }
                             },
@@ -1226,12 +1228,18 @@
                                 legend: {
                                     display: false
                                 },
+                                datalabels: {
+                                    color: '#111827',
+                                    backgroundColor: '#fff',
+                                    borderRadius: 4,
+                                    font: { weight: 'bold', size: 11 },
+                                    padding: 6,
+                                    borderWidth: 1,
+                                    borderColor: '#E5E7EB',
+                                    formatter: Math.round
+                                },
                                 tooltip: {
-                                    callbacks: {
-                                        label: function(context) {
-                                            return `점수: ${context.raw}점`;
-                                        }
-                                    }
+                                    enabled: false // Disable tooltips as labels are always visible
                                 }
                             }
                         }
