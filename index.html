@@ -545,11 +545,11 @@
                         <table>
                             <thead>
                                 <tr>
-                                    <th class="text-center" style="width:12%">영역 (가중치)</th>
-                                    <th class="text-center" style="width:50%">역량 상세</th>
+                                    <th class="text-center" style="width:13%">영역 (가중치)</th>
+                                    <th class="text-center" style="width:46%">역량 상세</th>
                                     <th class="text-center" style="width:8%">중요도</th>
-                                    <th class="text-center" style="width:20%">내 역량 (1~5)</th>
-                                    <th class="text-center" style="width:10%">GAP</th>
+                                    <th class="text-center" style="width:25%">내 역량 (1~5)</th>
+                                    <th class="text-center" style="width:8%">GAP</th>
                                 </tr>
                             </thead>
                             <tbody id="competency-table-body">
@@ -763,8 +763,9 @@
             const handleInput = `app.handleSliderInput('${id}', this.value)`;
             
             // Layout Adjustments for Table context
+            // Changed: Expanded max-width for competency to fill 25% column
             const containerStyle = type === 'competency' 
-                ? 'width:100%; max-width:160px; margin:0 auto;' // Reduced Size for Table
+                ? 'width:100%; max-width:100%; margin:0 auto;' 
                 : '';
 
             return `
