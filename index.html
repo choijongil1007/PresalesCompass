@@ -11,6 +11,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- PDF Generation Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* --- DualFit Premium SaaS Design System (Monochrome / Vanilla CSS) --- */
         :root {
@@ -377,6 +379,27 @@
         .report-stat-label { color: var(--text-secondary); }
         .report-stat-value { font-weight: 600; color: var(--primary); }
 
+        /* Report Layout (Split) */
+        .report-split-container {
+            display: flex;
+            gap: 32px;
+            align-items: flex-start;
+        }
+        .report-chart-area {
+            flex: 1;
+            background: #F9FAFB;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #E5E7EB;
+        }
+        .report-list-area {
+            flex: 1;
+        }
+
         /* Utilities */
         .hidden { display: none !important; }
         .text-center { text-align: center; }
@@ -680,7 +703,8 @@
         state: {
             view: 'suitability',
             suitabilityScores: {},
-            competencyScores: {}
+            competencyScores: {},
+            radarChart: null // Store chart instance
         },
 
         init: function() {
@@ -1064,10 +1088,7 @@
             else if(suitScore >= 60) suitFeedback = "적합 (잠재력 있음)";
             else suitFeedback = "보완 필요";
 
-            // 2.2 Competency Top 3
-            const priorities = this.updateCompetencyAnalysis(); // Returns top 3 array if we modify functionality or re-calculate
-            
-            // Re-calc specific for report as updateCompetencyAnalysis modifies DOM primarily
+            // 2.2 Competency Priorities
             const priorityList = [];
              COMPETENCY_DATA.forEach(domain => {
                 domain.items.forEach(item => {
@@ -1083,7 +1104,19 @@
             priorityList.sort((a,b) => b.gap - a.gap);
             const top3 = priorityList.slice(0, 3);
 
-            // Render
+            // 2.3 Competency Radar Chart Data Calculation
+            const domainScores = COMPETENCY_DATA.map(domain => {
+                let currentSum = 0;
+                let maxSum = domain.items.length * 5;
+                domain.items.forEach(item => {
+                    currentSum += this.state.competencyScores[item.id] || 0;
+                });
+                return Math.round((currentSum / maxSum) * 100);
+            });
+            
+            const domainLabels = ["기술적 지식", "커뮤니케이션", "분석/문제해결", "고객 관계", "기술 전략"];
+
+            // Render Layout
             container.innerHTML = `
                 <div class="card-premium" style="padding:32px;">
                     <h2 class="report-section-title" style="margin-top:0;">1. 프리세일즈 업무 적합성 요약</h2>
@@ -1105,25 +1138,105 @@
                     </div>
 
                     <h2 class="report-section-title">2. 역량 평가 및 학습 우선순위 요약</h2>
-                    <p style="color:var(--text-secondary); font-size:14px; margin-bottom:16px;">
-                        가장 시급하게 개발해야 할 Top 3 역량입니다. 이 항목들을 중심으로 학습 계획을 수립하세요.
-                    </p>
                     
-                    <div style="display:flex; flex-direction:column; gap:12px;">
-                        ${top3.map((p, idx) => `
-                            <div style="background:#F9FAFB; padding:16px; border-radius:8px; border:1px solid #E5E7EB;">
-                                <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                                    <span style="font-size:12px; font-weight:700; color:var(--primary); text-transform:uppercase;">Priority ${idx+1}</span>
-                                    <span style="font-size:12px; font-weight:600; color:var(--text-muted);">GAP ${p.gap.toFixed(0)}</span>
-                                </div>
-                                <div style="font-weight:600; font-size:15px;">${p.text}</div>
-                                <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">${p.domain}</div>
+                    <div class="report-split-container">
+                        <!-- Left: Radar Chart -->
+                        <div class="report-chart-area">
+                            <h4 style="margin:0 0 16px 0; color:var(--text-secondary);">내 역량 분석 (100점 만점)</h4>
+                            <div style="width:100%; max-width:400px; aspect-ratio:1/1;">
+                                <canvas id="competencyRadar"></canvas>
                             </div>
-                        `).join('')}
-                        ${top3.length === 0 ? '<div style="padding:10px; color:var(--text-muted);">보완이 필요한 역량이 없습니다. 훌륭합니다!</div>' : ''}
+                        </div>
+
+                        <!-- Right: Top 3 List -->
+                        <div class="report-list-area">
+                             <h4 style="margin:0 0 16px 0; color:var(--text-secondary);">학습 우선순위 Top 3</h4>
+                             <div style="display:flex; flex-direction:column; gap:12px;">
+                                ${top3.map((p, idx) => `
+                                    <div style="background:#F9FAFB; padding:16px; border-radius:8px; border:1px solid #E5E7EB;">
+                                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                                            <span style="font-size:12px; font-weight:700; color:var(--primary); text-transform:uppercase;">Priority ${idx+1}</span>
+                                            <span style="font-size:12px; font-weight:600; color:var(--text-muted);">GAP ${p.gap.toFixed(0)}</span>
+                                        </div>
+                                        <div style="font-weight:600; font-size:15px;">${p.text}</div>
+                                        <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">${p.domain}</div>
+                                    </div>
+                                `).join('')}
+                                ${top3.length === 0 ? '<div style="padding:10px; color:var(--text-muted);">보완이 필요한 역량이 없습니다. 훌륭합니다!</div>' : ''}
+                            </div>
+                        </div>
                     </div>
                 </div>
             `;
+
+            // Initialize Chart after DOM is ready
+            setTimeout(() => {
+                const ctx = document.getElementById('competencyRadar');
+                if (ctx) {
+                    if (this.state.radarChart) {
+                        this.state.radarChart.destroy();
+                    }
+                    
+                    this.state.radarChart = new Chart(ctx, {
+                        type: 'radar',
+                        data: {
+                            labels: domainLabels,
+                            datasets: [{
+                                label: '내 역량 점수',
+                                data: domainScores,
+                                fill: true,
+                                backgroundColor: 'rgba(17, 24, 39, 0.2)',
+                                borderColor: '#111827',
+                                pointBackgroundColor: '#111827',
+                                pointBorderColor: '#fff',
+                                pointHoverBackgroundColor: '#fff',
+                                pointHoverBorderColor: '#111827'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            animation: false, // Disable animation for PDF export stability
+                            scales: {
+                                r: {
+                                    angleLines: {
+                                        color: '#E5E7EB'
+                                    },
+                                    grid: {
+                                        color: '#E5E7EB'
+                                    },
+                                    pointLabels: {
+                                        color: '#111827',
+                                        font: {
+                                            size: 11,
+                                            weight: '600'
+                                        }
+                                    },
+                                    suggestedMin: 0,
+                                    suggestedMax: 100,
+                                    ticks: {
+                                        stepSize: 20,
+                                        backdropColor: 'transparent',
+                                        showLabelBackdrop: false
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            return `점수: ${context.raw}점`;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            }, 0);
         },
 
         downloadPDF: function() {
@@ -1139,10 +1252,10 @@
             btn.innerHTML = "저장 중...";
 
             const opt = {
-                margin:       15,
+                margin:       10,
                 filename:     'Presales_Compass_Report.pdf',
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2 },
+                html2canvas:  { scale: 2, useCORS: true },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
