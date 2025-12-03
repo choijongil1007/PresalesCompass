@@ -231,17 +231,18 @@
             gap: 40px;
         }
 
+        /* Updated Score Circle with Pastel Colors */
         .score-circle {
             width: 120px;
             height: 120px;
             border-radius: 50%;
-            border: 8px solid var(--primary-light);
+            border: 8px solid #DBEAFE; /* Pastel Blue Border */
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             transform: rotate(45deg);
-            background: white;
+            background: #EFF6FF; /* Pastel Blue Background */
             position: relative;
         }
         
@@ -385,21 +386,25 @@
         .report-split-container {
             display: flex;
             gap: 32px;
-            align-items: flex-start;
+            align-items: stretch; /* Stretch to equal height */
         }
         .report-chart-area {
             flex: 1;
-            background: #F9FAFB;
+            background: #EFF6FF; /* Pastel Blue */
             border-radius: 12px;
-            padding: 20px;
+            padding: 24px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            border: 1px solid #E5E7EB;
+            border: 1px solid #DBEAFE;
         }
         .report-list-area {
             flex: 1;
+            background: #FFF7ED; /* Pastel Orange/Yellow */
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid #FFEDD5;
         }
 
         /* Utilities */
@@ -514,8 +519,8 @@
                     <!-- Javascript will populate this -->
                 </div>
 
-                <!-- Result Message -->
-                <div id="suitability-result" class="card-premium hidden" style="background:#F3F4F6; padding:24px;">
+                <!-- Result Message (Pastel Mint Background) -->
+                <div id="suitability-result" class="card-premium hidden" style="background:#ECFDF5; padding:24px; border:1px solid #D1FAE5;">
                     <h3 style="margin:0 0 8px 0; font-size:18px;">진단 완료 🎉</h3>
                     <p id="suitability-result-text" style="margin:0; color:var(--text-secondary); line-height:1.5;"></p>
                 </div>
@@ -1009,6 +1014,8 @@
             // Sort by GAP desc
             priorities.sort((a,b) => b.gap - a.gap);
             const top3 = priorities.slice(0, 3);
+            
+            const PASTEL_COLORS = ['#FFFBEB', '#ECFDF5', '#EFF6FF']; // Yellow, Green, Blue
 
             const prioritySection = document.getElementById('priority-section');
             const listContainer = document.getElementById('priority-list');
@@ -1016,11 +1023,11 @@
             if (top3.length > 0) {
                 prioritySection.classList.remove('hidden');
                 listContainer.innerHTML = top3.map((p, idx) => `
-                    <div class="card-premium priority-card">
-                        <div class="rank-badge">${idx+1}</div>
+                    <div class="card-premium priority-card" style="background:${PASTEL_COLORS[idx % 3]}; border-top:none; border-left:4px solid var(--primary);">
+                        <div class="rank-badge" style="background:white; box-shadow:0 2px 4px rgba(0,0,0,0.05);">${idx+1}</div>
                         <div style="font-size:11px; text-transform:uppercase; font-weight:700; color:var(--text-muted); margin-bottom:8px;">${p.domain}</div>
                         <div style="font-size:16px; font-weight:600; margin-bottom:16px; min-height:44px;">${p.text}</div>
-                        <div style="background:#F9FAFB; padding:8px 12px; border-radius:8px; display:flex; justify-content:space-between; font-size:13px;">
+                        <div style="background:white; padding:8px 12px; border-radius:8px; display:flex; justify-content:space-between; font-size:13px; border:1px solid rgba(0,0,0,0.05);">
                             <span style="color:var(--text-secondary)">GAP Score</span>
                             <strong style="color:var(--primary)">${p.gap.toFixed(1)}</strong>
                         </div>
@@ -1119,7 +1126,7 @@
             
             const domainLabels = ["기술적 지식", "커뮤니케이션", "분석/문제해결", "고객 관계", "기술 전략"];
 
-            // Render Layout
+            // Render Layout with Pastel Backgrounds
             container.innerHTML = `
                 <div class="card-premium" style="padding:32px;">
                     <h2 class="report-section-title" style="margin-top:0;">1. 프리세일즈 업무 적합성 요약</h2>
@@ -1134,16 +1141,16 @@
                                 <span class="report-stat-value">${suitFeedback}</span>
                             </div>
                         </div>
-                         <!-- Simple Visual for Score -->
-                         <div style="width:100px; height:100px; background:var(--primary); border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-weight:800; font-size:24px;">
-                            ${suitScore}
+                         <!-- Simple Visual for Score (Pastel) -->
+                         <div class="score-circle" style="width:100px; height:100px; transform:rotate(45deg); border:8px solid #DBEAFE; background:#EFF6FF;">
+                            <div style="transform:rotate(-45deg); font-weight:800; font-size:24px; color:var(--primary);">${suitScore}</div>
                          </div>
                     </div>
 
                     <h2 class="report-section-title">2. 역량 평가 및 학습 우선순위 요약</h2>
                     
                     <div class="report-split-container">
-                        <!-- Left: Radar Chart -->
+                        <!-- Left: Radar Chart (Pastel Blue) -->
                         <div class="report-chart-area">
                             <h4 style="margin:0 0 16px 0; color:var(--text-secondary);">내 역량 분석 (100점 만점)</h4>
                             <div style="width:100%; max-width:400px; aspect-ratio:1/1;">
@@ -1151,12 +1158,12 @@
                             </div>
                         </div>
 
-                        <!-- Right: Top 3 List -->
+                        <!-- Right: Top 3 List (Pastel Orange) -->
                         <div class="report-list-area">
                              <h4 style="margin:0 0 16px 0; color:var(--text-secondary);">학습 우선순위 Top 3</h4>
                              <div style="display:flex; flex-direction:column; gap:12px;">
                                 ${top3.map((p, idx) => `
-                                    <div style="background:#F9FAFB; padding:16px; border-radius:8px; border:1px solid #E5E7EB;">
+                                    <div style="background:white; padding:16px; border-radius:8px; border:1px solid #E5E7EB; box-shadow:var(--shadow-sm);">
                                         <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
                                             <span style="font-size:12px; font-weight:700; color:var(--primary); text-transform:uppercase;">Priority ${idx+1}</span>
                                             <span style="font-size:12px; font-weight:600; color:var(--text-muted);">GAP ${p.gap.toFixed(0)}</span>
@@ -1188,12 +1195,13 @@
                                 label: '내 역량 점수',
                                 data: domainScores,
                                 fill: true,
-                                backgroundColor: 'rgba(17, 24, 39, 0.2)',
+                                backgroundColor: 'rgba(17, 24, 39, 0.1)',
                                 borderColor: '#111827',
                                 pointBackgroundColor: '#111827',
                                 pointBorderColor: '#fff',
                                 pointHoverBackgroundColor: '#fff',
-                                pointHoverBorderColor: '#111827'
+                                pointHoverBorderColor: '#111827',
+                                pointRadius: 4
                             }]
                         },
                         plugins: [ChartDataLabels],
@@ -1219,7 +1227,7 @@
                                     suggestedMin: 0,
                                     suggestedMax: 100,
                                     ticks: {
-                                        display: false,
+                                        display: false, // Hide ticks
                                         stepSize: 20
                                     }
                                 }
@@ -1230,13 +1238,12 @@
                                 },
                                 datalabels: {
                                     color: '#111827',
-                                    backgroundColor: '#fff',
-                                    borderRadius: 4,
-                                    font: { weight: 'bold', size: 11 },
-                                    padding: 6,
-                                    borderWidth: 1,
-                                    borderColor: '#E5E7EB',
-                                    formatter: Math.round
+                                    font: { weight: '800', size: 14 },
+                                    align: 'end',
+                                    anchor: 'end',
+                                    offset: 2,
+                                    formatter: Math.round,
+                                    // Removed backgroundColor, borderColor, borderWidth
                                 },
                                 tooltip: {
                                     enabled: false // Disable tooltips as labels are always visible
