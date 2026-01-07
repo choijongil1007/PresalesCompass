@@ -1,5 +1,5 @@
-
 import { SUITABILITY_DATA, COMPETENCY_DATA } from './constants.js';
+import { firebaseDB } from './index.js';
 
 const app = {
     state: {
@@ -8,7 +8,8 @@ const app = {
         suitabilityScores: {},
         competencyScores: {},
         radarChart: null,
-        isAdmin: false
+        isAdmin: false,
+        isProcessing: false
     },
 
     init: function() {
@@ -17,7 +18,12 @@ const app = {
         
         // 이벤트 리스너 바인딩
         document.getElementById('btn-onboarding-start').onclick = () => this.submitName();
-        document.getElementById('user-name-input').onkeyup = (e) => e.key === 'Enter' && this.submitName();
+        const nameInput = document.getElementById('user-name-input');
+        if (nameInput) {
+            nameInput.onkeyup = (e) => e.key === 'Enter' && this.submitName();
+            nameInput.focus();
+        }
+
         document.getElementById('btn-logout').onclick = () => this.logout();
         document.getElementById('btn-admin-logout').onclick = () => this.logout();
         document.getElementById('btn-reset-suitability').onclick = () => this.resetSuitability();
@@ -30,9 +36,19 @@ const app = {
     },
 
     submitName: async function() {
+        if (this.state.isProcessing) return;
+        
         const nameInput = document.getElementById('user-name-input');
         const name = nameInput.value.trim();
-        if (!name) return;
+        if (!name) {
+            alert('성함을 입력해주세요.');
+            return;
+        }
+
+        const btn = document.getElementById('btn-onboarding-start');
+        btn.disabled = true;
+        btn.innerText = '확인 중...';
+        this.state.isProcessing = true;
 
         this.state.userName = name;
         if (name === '관리자') {
@@ -43,15 +59,28 @@ const app = {
 
         this.setSyncing(true);
         try {
-            const userData = await window.firebaseDB.loadUserData(name);
+            console.log(`[App] Loading data for user: ${name}`);
+            const userData = await firebaseDB.loadUserData(name);
             if (userData) {
+                console.log("[App] Existing user found, loading scores.");
                 this.state.suitabilityScores = userData.suitabilityScores || {};
                 this.state.competencyScores = userData.competencyScores || {};
+            } else {
+                console.log("[App] New user, starting fresh.");
+                this.state.suitabilityScores = {};
+                this.state.competencyScores = {};
             }
+            
             this.renderUserUI();
             this.setSyncing(false);
         } catch (e) {
+            console.error("[App] Login error:", e);
             this.setSyncing(false, true);
+            alert('데이터를 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+        } finally {
+            this.state.isProcessing = false;
+            btn.disabled = false;
+            btn.innerText = '나침반 시작하기';
         }
     },
 
@@ -66,27 +95,40 @@ const app = {
 
     loadAdminDashboard: async function() {
         const dashboard = document.getElementById('admin-dashboard');
-        dashboard.innerHTML = '<p>데이터를 불러오는 중...</p>';
-        const users = await window.firebaseDB.fetchAllUsers();
-        this.renderAdminCards(users);
+        dashboard.innerHTML = '<div class="card-premium" style="padding:20px;">데이터를 불러오는 중...</div>';
+        try {
+            const users = await firebaseDB.fetchAllUsers();
+            this.renderAdminCards(users);
+        } catch (e) {
+            dashboard.innerHTML = '<div class="card-premium" style="padding:20px; color:red;">데이터 로드 실패</div>';
+        }
     },
 
     renderAdminCards: function(users) {
         const dashboard = document.getElementById('admin-dashboard');
-        if (!users.length) { dashboard.innerHTML = '<p>데이터가 없습니다.</p>'; return; }
+        if (!users || !users.length) { 
+            dashboard.innerHTML = '<div class="card-premium" style="padding:20px;">저장된 데이터가 없습니다.</div>'; 
+            return; 
+        }
         
         dashboard.innerHTML = users.map(user => {
             const sValues = Object.values(user.suitabilityScores || {});
             const sScore = sValues.length ? Math.round((sValues.reduce((a,b)=>a+b,0) / (11*5)) * 100) : 0;
+            const lastUpdate = user.updatedAt ? new Date(user.updatedAt).toLocaleString() : '기록 없음';
             
             return `
                 <div class="admin-card">
-                    <button class="admin-delete-btn" onclick="app.deleteUser('${user.id}', '${user.userName}')">
+                    <button class="admin-delete-btn" title="삭제" onclick="app.deleteUser('${user.id}', '${user.userName}')">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
                     </button>
-                    <h3 style="margin:0;">${user.userName || user.id}</h3>
+                    <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+                        <div class="avatar-circle" style="width:40px; height:40px; font-size:18px;">${(user.userName || '?').charAt(0).toUpperCase()}</div>
+                        <h3 style="margin:0; font-size:18px;">${user.userName || user.id}</h3>
+                    </div>
                     <div class="admin-score-badge">업무 적합도 ${sScore}점</div>
-                    <div style="font-size:12px; color:var(--text-secondary); margin-top:12px;">최종 업데이트: ${new Date(user.updatedAt).toLocaleDateString()}</div>
+                    <div style="font-size:12px; color:var(--text-secondary); margin-top:16px; border-top:1px solid var(--border); padding-top:12px;">
+                        <strong>최종 업데이트</strong><br>${lastUpdate}
+                    </div>
                 </div>
             `;
         }).join('');
@@ -94,8 +136,12 @@ const app = {
 
     deleteUser: async function(id, name) {
         if (confirm(`'${name || id}' 사용자의 정보를 영구적으로 삭제할까요?`)) {
-            await window.firebaseDB.deleteUser(id);
-            this.loadAdminDashboard();
+            try {
+                await firebaseDB.deleteUser(id);
+                this.loadAdminDashboard();
+            } catch (e) {
+                alert('삭제 중 오류가 발생했습니다.');
+            }
         }
     },
 
@@ -121,13 +167,26 @@ const app = {
             const menu = document.getElementById(`menu-${v}`);
             if (menu) menu.classList.remove('active');
         });
-        document.getElementById(`view-${view}`).classList.remove('hidden');
+        
+        const targetView = document.getElementById(`view-${view}`);
+        if (targetView) {
+            targetView.classList.remove('hidden');
+            // 페이드 인 효과
+            targetView.style.opacity = 0;
+            setTimeout(() => {
+                targetView.style.transition = 'opacity 0.3s ease';
+                targetView.style.opacity = 1;
+            }, 10);
+        }
+
         const activeMenu = document.getElementById(`menu-${view}`);
         if (activeMenu) activeMenu.classList.add('active');
         if (view === 'report') this.renderReport();
+        
+        // 스크롤 탑
+        window.scrollTo(0, 0);
     },
 
-    // --- 업무 적합성 로직 ---
     renderSuitabilityChecklist: function() {
         const container = document.getElementById('checklist-container');
         container.innerHTML = SUITABILITY_DATA.map(cat => `
@@ -138,7 +197,7 @@ const app = {
                     const isSelected = this.state.suitabilityScores.hasOwnProperty(item.id);
                     return `
                         <div class="checklist-row">
-                            <div style="font-size:14px;">${item.text}</div>
+                            <div style="font-size:14px; color:var(--text-main); font-weight:500;">${item.text}</div>
                             ${this.generateSliderHTML(item.id, score, isSelected, 'suitability')}
                         </div>
                     `;
@@ -147,7 +206,6 @@ const app = {
         `).join('');
     },
 
-    // --- 역량 평가 로직 ---
     renderCompetencyTable: function() {
         const tbody = document.getElementById('competency-table-body');
         let html = '';
@@ -157,14 +215,13 @@ const app = {
                 const isSelected = this.state.competencyScores.hasOwnProperty(item.id);
                 const gap = isSelected ? (dom.weight * item.importance * (item.importance - score)) : null;
                 html += `<tr>`;
-                if (idx === 0) html += `<td rowspan="${dom.items.length}" class="domain-cell"><strong>${dom.name}</strong><br><small>가중치 ${dom.weight}</small></td>`;
-                html += `<td>${item.text}</td><td class="text-center">${item.importance}</td><td class="text-center">${this.generateSliderHTML(item.id, score, isSelected, 'competency')}</td><td class="text-center">${gap !== null ? `<strong>${gap.toFixed(0)}</strong>` : '-'}</td></tr>`;
+                if (idx === 0) html += `<td rowspan="${dom.items.length}" class="domain-cell"><strong>${dom.name}</strong><br><small style="color:var(--text-muted)">가중치 ${dom.weight}</small></td>`;
+                html += `<td>${item.text}</td><td class="text-center">${item.importance}</td><td class="text-center">${this.generateSliderHTML(item.id, score, isSelected, 'competency')}</td><td class="text-center">${gap !== null ? `<strong style="color:${gap > 0 ? '#EF4444' : '#10B981'}">${gap.toFixed(0)}</strong>` : '-'}</td></tr>`;
             });
         });
         tbody.innerHTML = html;
     },
 
-    // --- 공통 슬라이더 생성 ---
     generateSliderHTML: function(id, score, isSelected, type) {
         return `
             <div class="slider-container">
@@ -185,7 +242,10 @@ const app = {
     handleSliderInput: function(id, val) {
         const score = parseInt(val);
         const fill = document.getElementById(`fill-${id}`);
-        if (fill) fill.style.width = `${((score-1)/4)*100}%`;
+        if (fill) {
+            fill.style.width = `${((score-1)/4)*100}%`;
+            fill.style.opacity = 1;
+        }
         const header = document.getElementById(`header-${id}`);
         if (header) Array.from(header.children).forEach((c, i) => c.classList.toggle('active', i+1 === score));
     },
@@ -207,19 +267,30 @@ const app = {
         const total = 11;
         const vals = Object.values(this.state.suitabilityScores);
         const pct = Math.round((vals.length / total) * 100);
-        const score = vals.length ? Math.round((vals.reduce((a,b)=>a+b,0)/(total*5))*100) : 0;
+        const rawScoreSum = vals.reduce((a,b)=>a+b,0);
+        const score = vals.length ? Math.round((rawScoreSum/(total*5))*100) : 0;
         
-        document.getElementById('suitability-total-score').innerText = score;
-        document.getElementById('suitability-progress-bar').style.width = `${pct}%`;
-        document.getElementById('suitability-progress-percent').innerText = `${pct}%`;
-        document.getElementById('suitability-progress-text').innerText = `진행률 (${vals.length}/${total})`;
+        const scoreEl = document.getElementById('suitability-total-score');
+        if (scoreEl) scoreEl.innerText = score;
+        
+        const barEl = document.getElementById('suitability-progress-bar');
+        if (barEl) barEl.style.width = `${pct}%`;
+        
+        const pctEl = document.getElementById('suitability-progress-percent');
+        if (pctEl) pctEl.innerText = `${pct}%`;
+        
+        const txtEl = document.getElementById('suitability-progress-text');
+        if (txtEl) txtEl.innerText = `진행률 (${vals.length}/${total})`;
     },
 
     updateCompetencyAnalysis: function() {
         const prios = [];
         COMPETENCY_DATA.forEach(d => d.items.forEach(i => {
             const s = this.state.competencyScores[i.id];
-            if(s) { const gap = d.weight * i.importance * (i.importance - s); if(gap > 0) prios.push({ text: i.text, gap, domain: d.name }); }
+            if(s) { 
+                const gap = d.weight * i.importance * (i.importance - s); 
+                if(gap > 0) prios.push({ text: i.text, gap, domain: d.name }); 
+            }
         }));
         prios.sort((a,b) => b.gap - a.gap);
         const top3 = prios.slice(0,3);
@@ -228,7 +299,15 @@ const app = {
         const section = document.getElementById('priority-section');
         if(top3.length) {
             section.classList.remove('hidden');
-            list.innerHTML = top3.map((p, i) => `<div class="priority-card"><strong>RANK ${i+1}</strong><br>${p.text}<br><small>${p.domain}</small></div>`).join('');
+            list.innerHTML = top3.map((p, i) => `
+                <div class="priority-card" style="border-left-color: ${i === 0 ? '#111827' : i === 1 ? '#4B5563' : '#9CA3AF'}">
+                    <div style="font-size:11px; font-weight:800; color:var(--text-muted); margin-bottom:8px;">RANK ${i+1}</div>
+                    <div style="font-weight:700; font-size:15px; margin-bottom:4px;">${p.text}</div>
+                    <div style="font-size:12px; color:var(--text-secondary);">${p.domain}</div>
+                </div>
+            `).join('');
+        } else {
+            section.classList.add('hidden');
         }
     },
 
@@ -236,7 +315,7 @@ const app = {
         if (!this.state.userName || this.state.isAdmin) return;
         this.setSyncing(true);
         try {
-            await window.firebaseDB.saveUserData(this.state.userName, {
+            await firebaseDB.saveUserData(this.state.userName, {
                 userName: this.state.userName,
                 suitabilityScores: this.state.suitabilityScores,
                 competencyScores: this.state.competencyScores,
@@ -244,6 +323,7 @@ const app = {
             });
             this.setSyncing(false);
         } catch (e) {
+            console.error("[App] Save error:", e);
             this.setSyncing(false, true);
         }
     },
@@ -251,48 +331,127 @@ const app = {
     setSyncing: function(syncing, error = false) {
         const dot = document.getElementById('sync-dot');
         const text = document.getElementById('sync-text');
+        if (!dot || !text) return;
+        
         if (error) { dot.className = 'sync-dot offline'; text.innerText = '동기화 실패'; }
-        else if (syncing) { dot.className = 'sync-dot syncing'; text.innerText = '저장 중...'; }
+        else if (syncing) { dot.className = 'sync-dot syncing'; text.innerText = '동기화 중...'; }
         else { dot.className = 'sync-dot'; text.innerText = '클라우드 동기화 됨'; }
     },
 
     renderReport: function() {
         const container = document.getElementById('report-content');
-        container.innerHTML = `<div class="card-premium" style="padding:40px; text-align:center;">리포트 생성 중...</div>`;
+        container.innerHTML = `<div class="card-premium" style="padding:40px; text-align:center; color:var(--text-secondary);">리포트를 생성하고 있습니다...</div>`;
         
         setTimeout(() => {
+            const radarLabels = COMPETENCY_DATA.map(d => d.name.split('. ')[1]);
             const radarData = COMPETENCY_DATA.map(d => {
                 let s = 0, c = 0;
-                d.items.forEach(i => { if(this.state.competencyScores[i.id]) { s += this.state.competencyScores[i.id]; c++; } });
+                d.items.forEach(i => { 
+                    if(this.state.competencyScores[i.id]) { 
+                        s += this.state.competencyScores[i.id]; 
+                        c++; 
+                    } 
+                });
                 return c === 0 ? 0 : Math.round((s / (d.items.length * 5)) * 100);
             });
 
             container.innerHTML = `
-                <div class="card-premium" style="padding:32px;">
-                    <h2 style="text-align:center;">${this.state.userName}님의 진단 리포트</h2>
-                    <canvas id="reportChart" style="max-width:500px; margin: 0 auto;"></canvas>
+                <div class="card-premium" style="padding:48px;">
+                    <div style="text-align:center; margin-bottom:40px;">
+                        <div style="font-size:14px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px;">Presales Compass Analysis</div>
+                        <h2 style="font-size:32px; font-weight:800; margin:0;">${this.state.userName}님의 진단 리포트</h2>
+                        <div style="width:40px; height:4px; background:var(--primary); margin:24px auto 0;"></div>
+                    </div>
+                    
+                    <div style="max-width:600px; margin: 0 auto;">
+                        <canvas id="reportChart"></canvas>
+                    </div>
+                    
+                    <div style="margin-top:48px; border-top:1px solid var(--border); padding-top:32px;">
+                        <h4 style="font-size:18px; margin-bottom:16px;">영역별 도달률</h4>
+                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:16px;">
+                            ${COMPETENCY_DATA.map((d, i) => `
+                                <div style="padding:16px; background:#F9FAFB; border-radius:12px; text-align:center;">
+                                    <div style="font-size:12px; color:var(--text-secondary); margin-bottom:4px;">${d.name.split('. ')[1]}</div>
+                                    <div style="font-size:24px; font-weight:800;">${radarData[i]}%</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
                 </div>
             `;
 
-            new Chart(document.getElementById('reportChart'), {
-                type: 'radar',
-                data: {
-                    labels: COMPETENCY_DATA.map(d => d.name.split('. ')[1]),
-                    datasets: [{ label: '역량 지표', data: radarData, backgroundColor: 'rgba(17,24,39,0.1)', borderColor: '#111827' }]
-                },
-                options: { scales: { r: { min: 0, max: 100 } } }
-            });
-        }, 300);
+            const ctx = document.getElementById('reportChart');
+            if (ctx) {
+                new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: radarLabels,
+                        datasets: [{ 
+                            label: '역량 지점', 
+                            data: radarData, 
+                            backgroundColor: 'rgba(17,24,39,0.1)', 
+                            borderColor: '#111827',
+                            borderWidth: 2,
+                            pointBackgroundColor: '#111827',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: '#111827'
+                        }]
+                    },
+                    options: { 
+                        scales: { 
+                            r: { 
+                                min: 0, 
+                                max: 100,
+                                ticks: { stepSize: 20, display: false },
+                                grid: { color: '#E5E7EB' },
+                                angleLines: { color: '#E5E7EB' },
+                                pointLabels: { font: { family: 'Inter', weight: '600', size: 13 } }
+                            } 
+                        },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+        }, 500);
     },
 
     downloadPDF: function() {
         const element = document.getElementById('report-content');
-        html2pdf().from(element).set({ margin: 10, filename: `Report_${this.state.userName}.pdf` }).save();
+        const opt = {
+            margin: 10,
+            filename: `Presales_Compass_${this.state.userName}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().from(element).set(opt).save();
     },
 
-    logout: function() { location.reload(); },
-    resetSuitability: function() { if(confirm('초기화하시겠습니까?')) { this.state.suitabilityScores = {}; this.renderSuitabilityChecklist(); this.updateSuitabilityStats(); this.saveData(); } },
-    resetCompetency: function() { if(confirm('초기화하시겠습니까?')) { this.state.competencyScores = {}; this.renderCompetencyTable(); this.updateCompetencyAnalysis(); this.saveData(); } }
+    logout: function() { 
+        if(confirm('로그아웃 하시겠습니까? 데이터는 클라우드에 안전하게 저장되었습니다.')) {
+            location.reload(); 
+        }
+    },
+    
+    resetSuitability: function() { 
+        if(confirm('업무 적합성 체크리스트를 초기화하시겠습니까?')) { 
+            this.state.suitabilityScores = {}; 
+            this.renderSuitabilityChecklist(); 
+            this.updateSuitabilityStats(); 
+            this.saveData(); 
+        } 
+    },
+    
+    resetCompetency: function() { 
+        if(confirm('역량 평가 데이터를 초기화하시겠습니까?')) { 
+            this.state.competencyScores = {}; 
+            this.renderCompetencyTable(); 
+            this.updateCompetencyAnalysis(); 
+            this.saveData(); 
+        } 
+    }
 };
 
 window.app = app;
