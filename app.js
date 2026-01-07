@@ -35,6 +35,15 @@ const app = {
         });
     },
 
+    maskName: function(name) {
+        if (!name) return "";
+        const str = String(name);
+        if (str.length < 2) return str;
+        const chars = str.split('');
+        chars[1] = '*'; // 두 번째 글자(중간 글자) 마스킹
+        return chars.join('');
+    },
+
     submitName: async function() {
         if (this.state.isProcessing) return;
         
@@ -117,6 +126,9 @@ const app = {
             const sScore = sValues.length ? Math.round((sValues.reduce((a,b)=>a+b,0) / (11*5)) * 100) : 0;
             const lastUpdate = user.updatedAt ? new Date(user.updatedAt).toLocaleString() : '기록 없음';
             
+            const rawName = user.userName || user.id;
+            const maskedName = this.maskName(rawName);
+
             // 영역별 점수 계산
             const domainScores = COMPETENCY_DATA.map(d => {
                 let s = 0, c = 0;
@@ -129,13 +141,13 @@ const app = {
             
             return `
                 <div class="admin-card">
-                    <button class="admin-delete-btn" title="삭제" onclick="app.deleteUser('${user.id}', '${user.userName}')">
+                    <button class="admin-delete-btn" title="삭제" onclick="app.deleteUser('${user.id}', '${rawName}')">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
                     </button>
                     <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
-                        <div class="avatar-circle" style="width:44px; height:44px; font-size:20px;">${(user.userName || '?').charAt(0).toUpperCase()}</div>
+                        <div class="avatar-circle" style="width:44px; height:44px; font-size:20px;">${(rawName || '?').charAt(0).toUpperCase()}</div>
                         <div>
-                            <h3 style="margin:0; font-size:18px;">${user.userName || user.id}</h3>
+                            <h3 style="margin:0; font-size:18px;">${maskedName}</h3>
                             <div class="admin-score-badge">업무 적합도 ${sScore}점</div>
                         </div>
                     </div>
@@ -175,7 +187,8 @@ const app = {
     },
 
     deleteUser: async function(id, name) {
-        if (confirm(`'${name || id}' 사용자의 정보를 영구적으로 삭제할까요?`)) {
+        const masked = this.maskName(name || id);
+        if (confirm(`'${masked}' 사용자의 정보를 영구적으로 삭제할까요?`)) {
             try {
                 await firebaseDB.deleteUser(id);
                 this.loadAdminDashboard();
