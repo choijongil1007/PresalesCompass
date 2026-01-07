@@ -21,53 +21,55 @@ let db;
 try {
     const app = initializeApp(firebaseConfig);
     db = getFirestore(app);
+    console.log("Firebase initialized successfully.");
 } catch (e) {
     console.error("Firebase 초기화 실패:", e);
 }
 
 export const firebaseDB = {
-  // 이름을 문서 ID로 사용하기 위해 정규화 (공백 제거, 소문자화)
+  // 공백 제거 및 소문자화하여 문서 ID 생성
   sanitizeName: (name) => {
     if (!name) return "";
-    return name.trim().replace(/\s+/g, '_').toLowerCase();
+    // 한글 이름의 경우 소문자화는 의미 없으나 영문 혼용 대비 유지
+    const sanitized = name.trim().replace(/\s+/g, '_').toLowerCase();
+    return sanitized;
   },
 
-  // 이름으로 기존 데이터 불러오기
   loadUserData: async (name) => {
     if (!db) {
-        console.error("데이터베이스가 초기화되지 않았습니다.");
+        console.error("Database connection missing.");
         return null;
     }
     try {
       const docId = firebaseDB.sanitizeName(name);
-      console.log(`불러오기 시도 - ID: ${docId}`);
+      console.log(`[Firebase] Loading data for ID: "${docId}" (Original: "${name}")`);
+      
       const docRef = doc(db, "presales_users", docId);
       const docSnap = await getDoc(docRef);
       
       if (docSnap.exists()) {
         const data = docSnap.data();
-        console.log("기존 데이터 발견:", data);
+        console.log("[Firebase] Data found:", data);
         return data;
       } else {
-        console.log("기존 데이터가 없습니다. 새로운 사용자로 처리합니다.");
+        console.log("[Firebase] No existing document found for ID:", docId);
         return null;
       }
     } catch (error) {
-      console.error("Firebase 데이터 로드 오류:", error);
+      console.error("[Firebase] Load error:", error);
       return null;
     }
   },
 
-  // 데이터 저장하기
   saveUserData: async (name, data) => {
     if (!db) return;
     try {
       const docId = firebaseDB.sanitizeName(name);
       const docRef = doc(db, "presales_users", docId);
       await setDoc(docRef, data, { merge: true });
-      console.log(`저장 완료 - ID: ${docId}`);
+      console.log(`[Firebase] Data saved successfully for ID: ${docId}`);
     } catch (error) {
-      console.error("Firebase 데이터 저장 오류:", error);
+      console.error("[Firebase] Save error:", error);
     }
   }
 };

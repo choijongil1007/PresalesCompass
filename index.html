@@ -294,12 +294,12 @@
             const text = document.getElementById('sync-text');
             if (error) {
                 dot.className = 'sync-dot offline';
-                text.innerText = "오프라인 모드 (로컬 저장)";
+                text.innerText = "오프라인 모드 (저장 불가)";
                 return;
             }
             if (syncing) {
                 dot.className = 'sync-dot syncing';
-                text.innerText = "데이터 로딩 중...";
+                text.innerText = "데이터 처리 중...";
             } else {
                 dot.className = 'sync-dot';
                 text.innerText = "클라우드 동기화 됨";
@@ -313,47 +313,51 @@
             if (!name) return;
 
             btn.disabled = true;
-            btn.innerText = "데이터 복구 중...";
+            btn.innerText = "조회 중...";
             this.setSyncing(true);
 
-            // index.js가 로드되어 window.firebaseDB가 설정될 때까지 대기
-            let retry = 0;
-            while (!window.firebaseDB && retry < 20) {
+            // Firebase 모듈 로딩 대기
+            let waitTime = 0;
+            while (!window.firebaseDB && waitTime < 5000) {
                 await new Promise(r => setTimeout(r, 100));
-                retry++;
+                waitTime += 100;
             }
 
             try {
-                if (!window.firebaseDB) throw new Error("Firebase DB module not loaded");
+                if (!window.firebaseDB) throw new Error("Firebase module timeout");
 
                 const userData = await window.firebaseDB.loadUserData(name);
                 
                 this.state.userName = name;
+                
+                // 데이터 주입 (Spread operator로 명시적 복사)
                 if (userData) {
-                    this.state.suitabilityScores = userData.suitabilityScores || {};
-                    this.state.competencyScores = userData.competencyScores || {};
-                    console.log("기존 데이터 로드 완료:", name);
+                    this.state.suitabilityScores = { ...(userData.suitabilityScores || {}) };
+                    this.state.competencyScores = { ...(userData.competencyScores || {}) };
+                    console.log(`[App] Success: Restored data for ${name}`);
                 } else {
                     this.state.suitabilityScores = {};
                     this.state.competencyScores = {};
-                    console.log("신규 사용자 생성:", name);
+                    console.log(`[App] New Session: No existing data for ${name}`);
                 }
 
+                // UI 전역 업데이트
                 this.updateUserUI();
                 this.renderSuitabilityChecklist();
                 this.updateSuitabilityStats();
                 this.renderCompetencyTable();
                 this.updateCompetencyAnalysis();
 
+                // 화면 전환
                 document.getElementById('view-onboarding').classList.add('hidden');
                 document.getElementById('app').classList.remove('hidden');
                 this.navigate('suitability');
                 this.setSyncing(false);
 
             } catch (e) {
-                console.error("Login failed:", e);
+                console.error("[App] Login error:", e);
                 this.setSyncing(false, true);
-                alert("로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+                alert("로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
             } finally {
                 btn.disabled = false;
                 btn.innerText = "나침반 시작하기";
@@ -365,8 +369,8 @@
 
             const dataToSave = {
                 userName: this.state.userName,
-                suitabilityScores: this.state.suitabilityScores,
-                competencyScores: this.state.competencyScores,
+                suitabilityScores: { ...this.state.suitabilityScores },
+                competencyScores: { ...this.state.competencyScores },
                 updatedAt: new Date().toISOString()
             };
             
@@ -393,7 +397,7 @@
         },
 
         logout: function() {
-            if (confirm("로그아웃 하시겠습니까?")) {
+            if (confirm("로그아웃 하시겠습니까? 데이터는 저장됩니다.")) {
                 location.reload();
             }
         },
@@ -403,12 +407,16 @@
             document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
             const menuBtn = document.getElementById(`menu-${viewName}`);
             if (menuBtn) menuBtn.classList.add('active');
+            
             document.getElementById('view-suitability').classList.add('hidden');
             document.getElementById('view-competency').classList.add('hidden');
             document.getElementById('view-report').classList.add('hidden');
             document.getElementById(`view-${viewName}`).classList.remove('hidden');
+            
             if (viewName === 'report') this.renderReport();
         },
+
+        // --- Render Helpers ---
 
         generateSliderHTML: function(id, score, isSelected, type) {
             const changeHandler = type === 'suitability' ? `app.setSuitabilityScore` : `app.setCompetencyScore`;
@@ -470,10 +478,16 @@
             const sum = values.reduce((a, b) => a + b, 0);
             const scorePercent = totalItems === 0 ? 0 : Math.round((sum / (totalItems * 5)) * 100);
             const progressPercent = Math.round((filledCount / totalItems) * 100);
-            document.getElementById('suitability-total-score').innerText = scorePercent;
-            document.getElementById('suitability-progress-text').innerText = `진행률 (${filledCount}/${totalItems})`;
-            document.getElementById('suitability-progress-percent').innerText = `${progressPercent}%`;
-            document.getElementById('suitability-progress-bar').style.width = `${progressPercent}%`;
+            
+            const scoreEl = document.getElementById('suitability-total-score');
+            const progressTextEl = document.getElementById('suitability-progress-text');
+            const progressPercentEl = document.getElementById('suitability-progress-percent');
+            const progressBarEl = document.getElementById('suitability-progress-bar');
+            
+            if(scoreEl) scoreEl.innerText = scorePercent;
+            if(progressTextEl) progressTextEl.innerText = `진행률 (${filledCount}/${totalItems})`;
+            if(progressPercentEl) progressPercentEl.innerText = `${progressPercent}%`;
+            if(progressBarEl) progressBarEl.style.width = `${progressPercent}%`;
         },
 
         resetSuitability: async function() {
@@ -548,7 +562,7 @@
 
         renderReport: function() {
             const container = document.getElementById('report-content');
-            container.innerHTML = `<div class="card-premium" style="padding:40px; text-align:center;">분석 데이터를 정렬하고 있습니다...</div>`;
+            container.innerHTML = `<div class="card-premium" style="padding:40px; text-align:center;">리포트를 생성 중입니다...</div>`;
             
             const suitabilityValues = Object.values(this.state.suitabilityScores);
             const totalSuitabilityItems = 11;
@@ -577,7 +591,7 @@
                     <div class="card-premium" style="padding:48px;">
                         <div style="text-align:center; margin-bottom:40px;">
                             <h2 style="margin:0 0 8px 0; font-size:28px;">프리세일즈 역량 진단 리포트</h2>
-                            <p style="color:var(--text-secondary); margin:0;">성함: ${this.state.userName}님 | 최종 업데이트: ${new Date().toLocaleDateString()}</p>
+                            <p style="color:var(--text-secondary); margin:0;">대상자: ${this.state.userName}님 | 최종 업데이트: ${new Date().toLocaleDateString()}</p>
                         </div>
 
                         <div class="report-section-title">1. 업무 적합성 진단 결과</div>
