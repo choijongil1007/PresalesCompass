@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -60,11 +61,79 @@
         .app-container {
             display: flex;
             width: 100%;
-            max-width: 1120px; /* 전체 너비 제한 변경 */
-            margin: 40px auto; /* 좌우 auto로 중앙 정렬 */
-            padding: 0 24px; /* 작은 화면용 내부 여백 */
-            gap: 32px; /* 사이드바와 콘텐츠 사이 간격 */
-            align-items: flex-start; /* 상단 정렬 */
+            max-width: 1120px;
+            margin: 40px auto;
+            padding: 0 24px;
+            gap: 32px;
+            align-items: flex-start;
+        }
+
+        /* Onboarding Styles */
+        #view-onboarding {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--bg-body);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .onboarding-card {
+            background: var(--bg-card);
+            padding: 48px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            width: 100%;
+            max-width: 440px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .onboarding-logo {
+            width: 64px;
+            height: 64px;
+            background: var(--primary);
+            color: white;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+        }
+
+        .onboarding-input {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            font-size: 16px;
+            margin-bottom: 20px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .onboarding-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.1);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
         }
 
         /* Sidebar (Box Style) */
@@ -72,15 +141,14 @@
             width: 260px;
             flex-shrink: 0;
             background: var(--bg-sidebar);
-            border: 1px solid var(--border); /* 박스 테두리 */
-            border-radius: var(--radius-lg); /* 둥근 모서리 */
-            box-shadow: var(--shadow-sm); /* 박스 그림자 */
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
             display: flex;
             flex-direction: column;
-            position: sticky; /* 스크롤 시 따라옴 */
+            position: sticky;
             top: 40px;
             height: fit-content;
-            /* min-height removed to fit content */
             z-index: 50;
         }
 
@@ -111,7 +179,19 @@
 
         .sidebar-menu {
             padding: 20px 12px;
-            flex: 1;
+        }
+
+        .sidebar-footer {
+            padding: 20px 12px;
+            border-top: 1px solid var(--border);
+            margin-top: auto;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
         }
 
         .menu-label {
@@ -167,17 +247,16 @@
             display: block;
         }
 
-        /* Sidebar Footer Removed */
-
         .avatar-circle {
             width: 32px;
             height: 32px;
             border-radius: 50%;
-            background: #E5E7EB;
+            background: var(--primary);
+            color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
+            font-size: 14px;
             font-weight: 700;
         }
 
@@ -185,7 +264,7 @@
         .main {
             flex: 1;
             width: 100%; 
-            min-width: 0; /* Flex overflow 방지 */
+            min-width: 0;
         }
 
         .page-header {
@@ -231,18 +310,17 @@
             gap: 40px;
         }
 
-        /* Updated Score Circle with Pastel Colors */
         .score-circle {
             width: 120px;
             height: 120px;
             border-radius: 50%;
-            border: 8px solid #DBEAFE; /* Pastel Blue Border */
+            border: 8px solid #DBEAFE;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             transform: rotate(45deg);
-            background: #EFF6FF; /* Pastel Blue Background */
+            background: #EFF6FF;
             position: relative;
         }
         
@@ -320,7 +398,7 @@
             height: 20px; width: 20px;
             border-radius: 50%; background: #fff;
             border: 2px solid #D1D5DB;
-            margin-top: -8px; /* Correctly center thumb on track (4px height) */
+            margin-top: -8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             transition: all 0.2s;
         }
@@ -346,7 +424,7 @@
             background: white; 
             border-right: 1px solid var(--border); 
             vertical-align: top; 
-            text-align: center; /* 중앙 정렬 추가 */
+            text-align: center;
         }
         .badge-weight { 
             font-size: 10px; background: #F3F4F6; padding: 2px 6px; 
@@ -386,11 +464,11 @@
         .report-split-container {
             display: flex;
             gap: 32px;
-            align-items: stretch; /* Stretch to equal height */
+            align-items: stretch;
         }
         .report-chart-area {
             flex: 1;
-            background: #EFF6FF; /* Pastel Blue */
+            background: #EFF6FF;
             border-radius: 12px;
             padding: 24px;
             display: flex;
@@ -401,7 +479,7 @@
         }
         .report-list-area {
             flex: 1;
-            background: #FFF7ED; /* Pastel Orange/Yellow */
+            background: #FFF7ED;
             border-radius: 12px;
             padding: 24px;
             border: 1px solid #FFEDD5;
@@ -442,12 +520,24 @@
     </style>
 </head>
 <body>
-    <div id="app" class="app-container">
-        <!-- Sidebar (Box Style) -->
+    <!-- Onboarding View -->
+    <div id="view-onboarding" class="hidden">
+        <div class="onboarding-card">
+            <div class="onboarding-logo">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+            </div>
+            <h1 style="font-size: 24px; margin-bottom: 8px;">Presales Compass</h1>
+            <p style="color: var(--text-secondary); margin-bottom: 32px; font-size: 15px;">나침반을 사용하기 위해 성함을 알려주세요.</p>
+            <input type="text" id="user-name-input" class="onboarding-input" placeholder="성함 또는 닉네임 입력" maxlength="20" onkeyup="if(event.key === 'Enter') app.submitName()">
+            <button class="btn-primary" onclick="app.submitName()">나침반 시작하기</button>
+        </div>
+    </div>
+
+    <div id="app" class="app-container hidden">
+        <!-- Sidebar -->
         <nav class="sidebar">
             <div class="sidebar-header">
                 <div class="logo-box">
-                    <!-- Compass Icon SVG -->
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
                 </div>
                 <span class="app-title">Presales Compass</span>
@@ -471,7 +561,16 @@
                     <div class="active-indicator"></div>
                 </button>
             </div>
-            <!-- Sidebar Footer Removed -->
+
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div id="user-avatar" class="avatar-circle">?</div>
+                    <div>
+                        <div id="user-name-display" style="font-weight: 600; font-size: 14px; color: var(--text-main);">사용자</div>
+                        <div style="font-size: 11px; color: var(--text-muted); cursor: pointer;" onclick="app.resetUser()">이름 수정</div>
+                    </div>
+                </div>
+            </div>
         </nav>
 
         <!-- Main Content -->
@@ -481,12 +580,11 @@
                 <div class="page-header">
                     <div>
                         <h1>프리세일즈 업무 적합성 체크리스트</h1>
-                        <p class="page-subtitle">본인의 성향과 역량이 프리세일즈 직무에 얼마나 부합하는지 진단해보세요.</p>
+                        <p class="page-subtitle"><span class="welcome-name">사용자</span>님, 본인의 성향과 역량이 직무에 얼마나 부합하는지 진단해보세요.</p>
                     </div>
                     <button class="btn-reset" onclick="app.resetSuitability()">평가 초기화</button>
                 </div>
                 
-                <!-- Legend for Suitability -->
                 <div class="card-premium legend-card" style="margin-bottom:24px;">
                     <div style="font-weight:700; font-size:12px; color:var(--text-muted); width:100%; text-transform:uppercase;">평가 기준 가이드 (1~5점)</div>
                     <div class="legend-item"><span class="legend-badge">1</span> 매우 그렇지 않다</div>
@@ -496,7 +594,6 @@
                     <div class="legend-item"><span class="legend-badge" style="background:var(--primary); color:white; border:none;">5</span> 매우 그렇다</div>
                 </div>
 
-                <!-- Score Overview -->
                 <div class="card-premium score-overview-card">
                     <div class="score-circle">
                         <span id="suitability-total-score" class="score-number">0</span>
@@ -514,12 +611,8 @@
                     </div>
                 </div>
 
-                <!-- Checklist Container -->
-                <div id="checklist-container">
-                    <!-- Javascript will populate this -->
-                </div>
+                <div id="checklist-container"></div>
 
-                <!-- Result Message (Pastel Mint Background) -->
                 <div id="suitability-result" class="card-premium hidden" style="background:#ECFDF5; padding:24px; border:1px solid #D1FAE5;">
                     <h3 style="margin:0 0 8px 0; font-size:18px;">진단 완료 🎉</h3>
                     <p id="suitability-result-text" style="margin:0; color:var(--text-secondary); line-height:1.5;"></p>
@@ -531,12 +624,11 @@
                 <div class="page-header">
                     <div>
                         <h1>역량 평가 및 학습 우선순위</h1>
-                        <p class="page-subtitle">현재 역량을 진단하고 GAP 분석을 통해 학습 우선순위를 도출합니다.</p>
+                        <p class="page-subtitle"><span class="welcome-name">사용자</span>님의 현재 역량을 진단하고 학습 우선순위를 도출합니다.</p>
                     </div>
                     <button class="btn-reset" onclick="app.resetCompetency()">평가 초기화</button>
                 </div>
 
-                <!-- Legend for Competency -->
                 <div class="card-premium legend-card" style="margin-bottom:24px;">
                     <div style="font-weight:700; font-size:12px; color:var(--text-muted); width:100%; text-transform:uppercase;">평가 기준 가이드 (1~5점)</div>
                     <div class="legend-item"><span class="legend-badge">1</span> 기술 없음</div>
@@ -546,7 +638,6 @@
                     <div class="legend-item"><span class="legend-badge" style="background:var(--primary); color:white; border:none;">5</span> 전문가</div>
                 </div>
 
-                <!-- Table -->
                 <div class="card-premium">
                     <div class="table-responsive">
                         <table>
@@ -559,23 +650,18 @@
                                     <th class="text-center" style="width:8%">GAP</th>
                                 </tr>
                             </thead>
-                            <tbody id="competency-table-body">
-                                <!-- JS Populated -->
-                            </tbody>
+                            <tbody id="competency-table-body"></tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- Top 3 Priorities -->
                 <div id="priority-section" class="hidden">
                     <div style="display:flex; align-items:center; gap:12px; margin-top:48px;">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#111827" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
                         <h3 style="font-size:20px; margin:0;">학습 우선순위 TOP 3</h3>
                     </div>
                     <p style="color:var(--text-secondary); margin-bottom:24px;">다음 역량을 먼저 개발하면 가장 큰 성장을 이룰 수 있습니다.</p>
-                    <div id="priority-list" class="priority-grid">
-                        <!-- JS Populated -->
-                    </div>
+                    <div id="priority-list" class="priority-grid"></div>
                 </div>
             </div>
 
@@ -584,7 +670,7 @@
                  <div class="page-header">
                     <div>
                         <h1>종합 결과 보고서</h1>
-                        <p class="page-subtitle">두 가지 진단 결과를 종합하여 분석된 내용을 확인하세요.</p>
+                        <p class="page-subtitle"><span class="welcome-name">사용자</span>님의 진단 결과를 바탕으로 분석된 리포트입니다.</p>
                     </div>
                     <button class="btn-reset" onclick="app.downloadPDF()">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -592,22 +678,13 @@
                     </button>
                 </div>
 
-                <div id="report-content">
-                    <!-- Populated by JS -->
-                </div>
+                <div id="report-content"></div>
             </div>
 
         </main>
     </div>
 
-    <!-- Application Logic (Inlined) -->
     <script>
-    /**
-     * Presales Compass - Pure Vanilla JS Implementation
-     */
-
-    // --- Data Definitions ---
-
     const SUITABILITY_DATA = [
         {
           id: "tech",
@@ -704,19 +781,23 @@
         }
     ];
 
-    // --- App Logic ---
-
     const app = {
         state: {
+            userName: '',
             view: 'suitability',
             suitabilityScores: {},
             competencyScores: {},
-            radarChart: null // Store chart instance
+            radarChart: null
         },
 
         init: function() {
-            // Load data from LocalStorage
             try {
+                const savedName = localStorage.getItem('presales_user_name');
+                if (savedName) {
+                    this.state.userName = savedName;
+                    this.updateUserUI();
+                }
+
                 const savedSuitability = localStorage.getItem('presales_suitability_scores');
                 if (savedSuitability) this.state.suitabilityScores = JSON.parse(savedSuitability);
 
@@ -726,72 +807,82 @@
                 console.error("Load failed", e);
             }
 
-            // Render Initial Components
             this.renderSuitabilityChecklist();
             this.updateSuitabilityStats();
-            
             this.renderCompetencyTable();
             this.updateCompetencyAnalysis();
 
-            // Show default view
+            if (!this.state.userName) {
+                document.getElementById('view-onboarding').classList.remove('hidden');
+                document.getElementById('app').classList.add('hidden');
+            } else {
+                document.getElementById('view-onboarding').classList.add('hidden');
+                document.getElementById('app').classList.remove('hidden');
+                this.navigate('suitability');
+            }
+        },
+
+        submitName: function() {
+            const input = document.getElementById('user-name-input');
+            const name = input.value.trim();
+            if (!name) {
+                alert("성함을 입력해주세요.");
+                return;
+            }
+            this.state.userName = name;
+            localStorage.setItem('presales_user_name', name);
+            this.updateUserUI();
+            
+            document.getElementById('view-onboarding').classList.add('hidden');
+            document.getElementById('app').classList.remove('hidden');
             this.navigate('suitability');
+        },
+
+        updateUserUI: function() {
+            const avatar = document.getElementById('user-avatar');
+            const display = document.getElementById('user-name-display');
+            const welcomeNames = document.querySelectorAll('.welcome-name');
+            
+            if (this.state.userName) {
+                avatar.innerText = this.state.userName.charAt(0).toUpperCase();
+                display.innerText = `${this.state.userName}님`;
+                welcomeNames.forEach(el => el.innerText = this.state.userName);
+            }
+        },
+
+        resetUser: function() {
+            if (confirm("이름을 수정하시겠습니까? 데이터는 유지됩니다.")) {
+                this.state.userName = '';
+                localStorage.removeItem('presales_user_name');
+                document.getElementById('view-onboarding').classList.remove('hidden');
+                document.getElementById('app').classList.add('hidden');
+            }
         },
 
         navigate: function(viewName) {
             this.state.view = viewName;
-            
-            // Update Sidebar UI
             document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
             document.getElementById(`menu-${viewName}`).classList.add('active');
-
-            // Update Main View UI
             document.getElementById('view-suitability').classList.add('hidden');
             document.getElementById('view-competency').classList.add('hidden');
             document.getElementById('view-report').classList.add('hidden');
-            
             document.getElementById(`view-${viewName}`).classList.remove('hidden');
-
-            // Trigger logic for report
-            if (viewName === 'report') {
-                this.renderReport();
-            }
+            if (viewName === 'report') this.renderReport();
         },
 
-        // --- Shared Slider Logic ---
-        
-        // Generates the HTML for a slider. 
-        // type: 'suitability' or 'competency'
         generateSliderHTML: function(id, score, isSelected, type) {
-            // Determine the onclick and oninput handlers based on type
-            const changeHandler = type === 'suitability' 
-                ? `app.setSuitabilityScore` 
-                : `app.setCompetencyScore`;
-            
+            const changeHandler = type === 'suitability' ? `app.setSuitabilityScore` : `app.setCompetencyScore`;
             const handleInput = `app.handleSliderInput('${id}', this.value)`;
-            
-            // Layout Adjustments for Table context
-            // Changed: Expanded max-width for competency to fill 25% column
-            const containerStyle = type === 'competency' 
-                ? 'width:100%; max-width:100%; margin:0 auto;' 
-                : '';
-
+            const containerStyle = type === 'competency' ? 'width:100%; max-width:100%; margin:0 auto;' : '';
             return `
                 <div class="slider-container" style="${containerStyle}">
                     <div class="slider-header" id="header-${id}">
-                        ${[1,2,3,4,5].map(n => 
-                            `<div class="slider-num ${score === n ? 'active' : ''}" onclick="${changeHandler}('${id}', ${n})">${n}</div>`
-                        ).join('')}
+                        ${[1,2,3,4,5].map(n => `<div class="slider-num ${score === n ? 'active' : ''}" onclick="${changeHandler}('${id}', ${n})">${n}</div>`).join('')}
                     </div>
                     <div class="slider-track-wrapper">
                         <div class="track-bg"></div>
                         <div class="track-fill" id="fill-${id}" style="width: ${((score-1)/4)*100}%; opacity:${isSelected ? 1 : 0.3}"></div>
-                        <input type="range" min="1" max="5" step="1" value="${score}" 
-                               class="${isSelected ? 'selected' : ''}"
-                               id="input-${id}"
-                               oninput="${handleInput}"
-                               onchange="${changeHandler}('${id}', parseInt(this.value))"
-                               onpointerup="${changeHandler}('${id}', parseInt(this.value))"
-                        >
+                        <input type="range" min="1" max="5" step="1" value="${score}" class="${isSelected ? 'selected' : ''}" id="input-${id}" oninput="${handleInput}" onchange="${changeHandler}('${id}', parseInt(this.value))">
                     </div>
                 </div>
             `;
@@ -800,17 +891,13 @@
         handleSliderInput: function(id, val) {
             const score = parseInt(val);
             const fillPercent = ((score - 1) / 4) * 100;
-            
             const fillEl = document.getElementById(`fill-${id}`);
             const inputEl = document.getElementById(`input-${id}`);
-            
             if(fillEl && inputEl) {
                 fillEl.style.width = `${fillPercent}%`;
                 fillEl.style.opacity = '1';
                 inputEl.classList.add('selected');
             }
-            
-            // Update header numbers active state
             const header = document.getElementById(`header-${id}`);
             if(header) {
                 Array.from(header.children).forEach((child, idx) => {
@@ -820,48 +907,29 @@
             }
         },
 
-        // --- Suitability Logic ---
-
         renderSuitabilityChecklist: function() {
             const container = document.getElementById('checklist-container');
             let html = '';
-
             SUITABILITY_DATA.forEach(category => {
-                html += `
-                    <div class="card-premium category-card">
-                        <h2 class="category-title">${category.title}</h2>
-                        <div>
-                `;
-                
+                html += `<div class="card-premium category-card"><h2 class="category-title">${category.title}</h2><div>`;
                 category.items.forEach(item => {
                     const score = this.state.suitabilityScores[item.id] || 3;
                     const isSelected = this.state.suitabilityScores.hasOwnProperty(item.id);
-                    
-                    html += `
-                        <div class="checklist-row">
-                            <div style="flex:1; font-size:15px; font-weight:500; color:var(--text-secondary); line-height:1.5;">${item.text}</div>
-                            ${this.generateSliderHTML(item.id, score, isSelected, 'suitability')}
-                        </div>
-                    `;
+                    html += `<div class="checklist-row"><div style="flex:1; font-size:15px; font-weight:500; color:var(--text-secondary); line-height:1.5;">${item.text}</div>${this.generateSliderHTML(item.id, score, isSelected, 'suitability')}</div>`;
                 });
-
                 html += `</div></div>`;
             });
-
             container.innerHTML = html;
         },
 
         setSuitabilityScore: function(id, score) {
             this.state.suitabilityScores[id] = score;
             localStorage.setItem('presales_suitability_scores', JSON.stringify(this.state.suitabilityScores));
-            
-            // Sync Input if triggered by click on number or external call
             const input = document.getElementById(`input-${id}`);
             if(input) {
                 input.value = score;
-                this.handleSliderInput(id, score); // Update visuals
+                this.handleSliderInput(id, score);
             }
-
             this.updateSuitabilityStats();
         },
 
@@ -869,30 +937,20 @@
             const totalItems = 11;
             const maxScore = totalItems * 5;
             const filledCount = Object.keys(this.state.suitabilityScores).length;
-            
             const sum = Object.values(this.state.suitabilityScores).reduce((a,b) => a+b, 0);
             const finalScore = Math.round((sum / maxScore) * 100);
             const progressPercent = Math.round((filledCount / totalItems) * 100);
-
-            // DOM Updates
             document.getElementById('suitability-total-score').innerText = finalScore;
             document.getElementById('suitability-progress-text').innerText = `진행률 (${filledCount}/${totalItems})`;
             document.getElementById('suitability-progress-percent').innerText = `${progressPercent}%`;
             document.getElementById('suitability-progress-bar').style.width = `${progressPercent}%`;
-
-            // Show Result if complete
             const resultEl = document.getElementById('suitability-result');
             const resultTextEl = document.getElementById('suitability-result-text');
-            
             if (filledCount === totalItems) {
                 resultEl.classList.remove('hidden');
-                if (finalScore >= 80) {
-                    resultTextEl.innerText = "프리세일즈 직무에 매우 적합한 성향과 역량을 갖추고 계십니다! 탁월한 성과가 기대됩니다.";
-                } else if (finalScore >= 60) {
-                    resultTextEl.innerText = "프리세일즈 직무에 대한 잠재력이 충분합니다. 일부 역량을 보완하면 훌륭한 전문가로 성장할 수 있습니다.";
-                } else {
-                    resultTextEl.innerText = "현재 성향과는 다소 차이가 있을 수 있습니다. 구체적인 부족 역량을 파악하고 개발 계획을 세워보세요.";
-                }
+                if (finalScore >= 80) resultTextEl.innerText = "프리세일즈 직무에 매우 적합한 성향과 역량을 갖추고 계십니다! 탁월한 성과가 기대됩니다.";
+                else if (finalScore >= 60) resultTextEl.innerText = "프리세일즈 직무에 대한 잠재력이 충분합니다. 일부 역량을 보완하면 훌륭한 전문가로 성장할 수 있습니다.";
+                else resultTextEl.innerText = "현재 성향과는 다소 차이가 있을 수 있습니다. 구체적인 부족 역량을 파악하고 개발 계획을 세워보세요.";
             } else {
                 resultEl.classList.add('hidden');
             }
@@ -907,80 +965,42 @@
             }
         },
 
-        // --- Competency Logic ---
-
         renderCompetencyTable: function() {
             const tbody = document.getElementById('competency-table-body');
             let html = '';
-
             COMPETENCY_DATA.forEach(domain => {
                 domain.items.forEach((item, idx) => {
                     const currentScore = this.state.competencyScores[item.id] || 3;
                     const isSelected = this.state.competencyScores.hasOwnProperty(item.id);
                     const gap = this.state.competencyScores[item.id] ? (domain.weight * item.importance * (item.importance - currentScore)) : null;
-                    
                     html += `<tr>`;
-                    
-                    // Domain Cell (Rowspan)
-                    if (idx === 0) {
-                        html += `
-                            <td rowspan="${domain.items.length}" class="domain-cell">
-                                <div style="font-weight:700; color:var(--text-main); margin-bottom:8px;">${domain.name}</div>
-                                <span class="badge-weight">가중치 ${domain.weight}</span>
-                            </td>
-                        `;
-                    }
-
-                    html += `
-                        <td>${item.text}</td>
-                        <td class="text-center">
-                            <span style="display:inline-block; width:8px; height:8px; background:var(--primary); border-radius:50%; margin-right:6px; opacity:${item.importance/5}"></span>
-                            ${item.importance}
-                        </td>
-                        <td class="text-center">
-                            ${this.generateSliderHTML(item.id, currentScore, isSelected, 'competency')}
-                        </td>
-                        <td class="text-center">
-                            ${gap !== null ? `<span class="gap-badge ${gap > 0 ? 'gap-high' : 'gap-low'}">${gap.toFixed(0)}</span>` : '-'}
-                        </td>
-                    `;
-
-                    html += `</tr>`;
+                    if (idx === 0) html += `<td rowspan="${domain.items.length}" class="domain-cell"><div style="font-weight:700; color:var(--text-main); margin-bottom:8px;">${domain.name}</div><span class="badge-weight">가중치 ${domain.weight}</span></td>`;
+                    html += `<td>${item.text}</td><td class="text-center"><span style="display:inline-block; width:8px; height:8px; background:var(--primary); border-radius:50%; margin-right:6px; opacity:${item.importance/5}"></span>${item.importance}</td><td class="text-center">${this.generateSliderHTML(item.id, currentScore, isSelected, 'competency')}</td><td class="text-center">${gap !== null ? `<span class="gap-badge ${gap > 0 ? 'gap-high' : 'gap-low'}">${gap.toFixed(0)}</span>` : '-'}</td></tr>`;
                 });
             });
-
             tbody.innerHTML = html;
         },
 
         setCompetencyScore: function(id, score) {
             this.state.competencyScores[id] = score;
             localStorage.setItem('presales_competency_scores', JSON.stringify(this.state.competencyScores));
-            
-             // Sync Input if triggered by click on number or external call
             const input = document.getElementById(`input-${id}`);
             if(input) {
                 input.value = score;
-                this.handleSliderInput(id, score); // Update visuals
+                this.handleSliderInput(id, score);
             }
-            
-            // Update Stats
             this.updateCompetencyAnalysis();
-            
-            // Update GAP cell for this row specifically
             this.updateGapCell(id, score);
         },
         
         updateGapCell: function(itemId, score) {
-            // Find domain and item to calc gap
             let domain, item;
             for(const d of COMPETENCY_DATA) {
                 const i = d.items.find(it => it.id === itemId);
                 if(i) { domain = d; item = i; break; }
             }
-            
             if(domain && item) {
                 const gap = domain.weight * item.importance * (item.importance - score);
-                // Find the row. It's the parent TR of the input
                 const inputEl = document.getElementById(`input-${itemId}`);
                 if(inputEl) {
                     const tr = inputEl.closest('tr');
@@ -992,34 +1012,20 @@
 
         updateCompetencyAnalysis: function() {
             const priorities = [];
-            let hasData = false;
-
             COMPETENCY_DATA.forEach(domain => {
                 domain.items.forEach(item => {
                     const current = this.state.competencyScores[item.id];
                     if (current) {
-                        hasData = true;
                         const gap = domain.weight * item.importance * (item.importance - current);
-                        if (gap > 0) {
-                            priorities.push({
-                                domain: domain.name,
-                                text: item.text,
-                                gap: gap
-                            });
-                        }
+                        if (gap > 0) priorities.push({ domain: domain.name, text: item.text, gap: gap });
                     }
                 });
             });
-
-            // Sort by GAP desc
             priorities.sort((a,b) => b.gap - a.gap);
             const top3 = priorities.slice(0, 3);
-            
-            const PASTEL_COLORS = ['#FFFBEB', '#ECFDF5', '#EFF6FF']; // Yellow, Green, Blue
-
+            const PASTEL_COLORS = ['#FFFBEB', '#ECFDF5', '#EFF6FF'];
             const prioritySection = document.getElementById('priority-section');
             const listContainer = document.getElementById('priority-list');
-
             if (top3.length > 0) {
                 prioritySection.classList.remove('hidden');
                 listContainer.innerHTML = top3.map((p, idx) => `
@@ -1027,10 +1033,7 @@
                         <div class="rank-badge" style="background:white; box-shadow:0 2px 4px rgba(0,0,0,0.05);">${idx+1}</div>
                         <div style="font-size:11px; text-transform:uppercase; font-weight:700; color:var(--text-muted); margin-bottom:8px;">${p.domain}</div>
                         <div style="font-size:16px; font-weight:600; margin-bottom:16px; min-height:44px;">${p.text}</div>
-                        <div style="background:white; padding:8px 12px; border-radius:8px; display:flex; justify-content:space-between; font-size:13px; border:1px solid rgba(0,0,0,0.05);">
-                            <span style="color:var(--text-secondary)">GAP Score</span>
-                            <strong style="color:var(--primary)">${p.gap.toFixed(1)}</strong>
-                        </div>
+                        <div style="background:white; padding:8px 12px; border-radius:8px; display:flex; justify-content:space-between; font-size:13px; border:1px solid rgba(0,0,0,0.05);"><span style="color:var(--text-secondary)">GAP Score</span><strong style="color:var(--primary)">${p.gap.toFixed(1)}</strong></div>
                     </div>
                 `).join('');
             } else {
@@ -1048,130 +1051,68 @@
             }
         },
 
-        // --- Report Logic ---
         renderReport: function() {
             const container = document.getElementById('report-content');
-            
-            // 1. Check Completion
             const totalSuitability = 11;
             const filledSuitability = Object.keys(this.state.suitabilityScores).length;
-            
             let totalCompetency = 0;
-            COMPETENCY_DATA.forEach(d => totalCompetency += d.items.length); // Should be 20
+            COMPETENCY_DATA.forEach(d => totalCompetency += d.items.length);
             const filledCompetency = Object.keys(this.state.competencyScores).length;
-
             const isComplete = (filledSuitability === totalSuitability) && (filledCompetency === totalCompetency);
 
             if (!isComplete) {
                 container.innerHTML = `
-                    <div class="report-empty-state">
-                        <div style="font-size:48px; margin-bottom:16px;">⏳</div>
-                        <h3 style="font-size:20px; font-weight:700; margin-bottom:12px;">평가가 완료되지 않았습니다</h3>
-                        <p style="color:var(--text-secondary); margin-bottom:32px;">두 가지 진단을 모두 완료해야 종합 보고서를 확인할 수 있습니다.</p>
-                        
+                    <div class="report-empty-state"><div style="font-size:48px; margin-bottom:16px;">⏳</div><h3 style="font-size:20px; font-weight:700; margin-bottom:12px;">평가가 완료되지 않았습니다</h3><p style="color:var(--text-secondary); margin-bottom:32px;">두 가지 진단을 모두 완료해야 종합 보고서를 확인할 수 있습니다.</p>
                         <div style="max-width:400px; margin:0 auto; text-align:left;">
-                            <div class="report-stat-row">
-                                <span>업무 적합성 체크리스트</span>
-                                <span style="color:${filledSuitability === totalSuitability ? 'var(--primary)' : 'orange'}">
-                                    ${filledSuitability} / ${totalSuitability} 완료
-                                </span>
-                            </div>
-                            <div class="report-stat-row" style="border:none;">
-                                <span>역량 평가 및 학습</span>
-                                <span style="color:${filledCompetency === totalCompetency ? 'var(--primary)' : 'orange'}">
-                                    ${filledCompetency} / ${totalCompetency} 완료
-                                </span>
-                            </div>
+                            <div class="report-stat-row"><span>업무 적합성 체크리스트</span><span style="color:${filledSuitability === totalSuitability ? 'var(--primary)' : 'orange'}">${filledSuitability} / ${totalSuitability} 완료</span></div>
+                            <div class="report-stat-row" style="border:none;"><span>역량 평가 및 학습</span><span style="color:${filledCompetency === totalCompetency ? 'var(--primary)' : 'orange'}">${filledCompetency} / ${totalCompetency} 완료</span></div>
                         </div>
                     </div>
                 `;
                 return;
             }
 
-            // 2. Generate Report Content
-            // 2.1 Suitability Summary
             const suitSum = Object.values(this.state.suitabilityScores).reduce((a,b)=>a+b, 0);
             const suitScore = Math.round((suitSum / (totalSuitability * 5)) * 100);
-            
-            let suitFeedback = "";
-            if(suitScore >= 80) suitFeedback = "매우 적합";
-            else if(suitScore >= 60) suitFeedback = "적합 (잠재력 있음)";
-            else suitFeedback = "보완 필요";
+            let suitFeedback = suitScore >= 80 ? "매우 적합" : suitScore >= 60 ? "적합 (잠재력 있음)" : "보완 필요";
 
-            // 2.2 Competency Priorities
             const priorityList = [];
-             COMPETENCY_DATA.forEach(domain => {
+            COMPETENCY_DATA.forEach(domain => {
                 domain.items.forEach(item => {
                     const current = this.state.competencyScores[item.id];
                     if (current) {
                         const gap = domain.weight * item.importance * (item.importance - current);
-                        if (gap > 0) {
-                            priorityList.push({ domain: domain.name, text: item.text, gap: gap });
-                        }
+                        if (gap > 0) priorityList.push({ domain: domain.name, text: item.text, gap: gap });
                     }
                 });
             });
             priorityList.sort((a,b) => b.gap - a.gap);
             const top3 = priorityList.slice(0, 3);
 
-            // 2.3 Competency Radar Chart Data Calculation
             const domainScores = COMPETENCY_DATA.map(domain => {
                 let currentSum = 0;
                 let maxSum = domain.items.length * 5;
-                domain.items.forEach(item => {
-                    currentSum += this.state.competencyScores[item.id] || 0;
-                });
+                domain.items.forEach(item => currentSum += this.state.competencyScores[item.id] || 0);
                 return Math.round((currentSum / maxSum) * 100);
             });
-            
             const domainLabels = ["기술적 지식", "커뮤니케이션", "분석/문제해결", "고객 관계", "기술 전략"];
 
-            // Render Layout with Pastel Backgrounds
             container.innerHTML = `
                 <div class="card-premium" style="padding:32px;">
+                    <h2 style="font-size: 20px; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 12px;">${this.state.userName}님의 진단 레포트</h2>
                     <h2 class="report-section-title" style="margin-top:0;">1. 프리세일즈 업무 적합성 요약</h2>
                     <div style="display:flex; gap:32px; align-items:center; margin-bottom:24px;">
                         <div style="flex:1;">
-                            <div class="report-stat-row">
-                                <span class="report-stat-label">종합 점수</span>
-                                <span class="report-stat-value" style="font-size:18px;">${suitScore}점 / 100점</span>
-                            </div>
-                            <div class="report-stat-row">
-                                <span class="report-stat-label">진단 결과</span>
-                                <span class="report-stat-value">${suitFeedback}</span>
-                            </div>
+                            <div class="report-stat-row"><span class="report-stat-label">종합 점수</span><span class="report-stat-value" style="font-size:18px;">${suitScore}점 / 100점</span></div>
+                            <div class="report-stat-row"><span class="report-stat-label">진단 결과</span><span class="report-stat-value">${suitFeedback}</span></div>
                         </div>
-                         <!-- Simple Visual for Score (Pastel) -->
-                         <div class="score-circle" style="width:100px; height:100px; transform:rotate(45deg); border:8px solid #DBEAFE; background:#EFF6FF;">
-                            <div style="transform:rotate(-45deg); font-weight:800; font-size:24px; color:var(--primary);">${suitScore}</div>
-                         </div>
+                         <div class="score-circle" style="width:100px; height:100px; transform:rotate(45deg); border:8px solid #DBEAFE; background:#EFF6FF;"><div style="transform:rotate(-45deg); font-weight:800; font-size:24px; color:var(--primary);">${suitScore}</div></div>
                     </div>
-
                     <h2 class="report-section-title">2. 역량 평가 및 학습 우선순위 요약</h2>
-                    
                     <div class="report-split-container">
-                        <!-- Left: Radar Chart (Pastel Blue) -->
-                        <div class="report-chart-area">
-                            <h4 style="margin:0 0 16px 0; color:var(--text-secondary);">내 역량 분석 (100점 만점)</h4>
-                            <div style="width:100%; max-width:400px; aspect-ratio:1/1;">
-                                <canvas id="competencyRadar"></canvas>
-                            </div>
-                        </div>
-
-                        <!-- Right: Top 3 List (Pastel Orange) -->
-                        <div class="report-list-area">
-                             <h4 style="margin:0 0 16px 0; color:var(--text-secondary);">학습 우선순위 Top 3</h4>
-                             <div style="display:flex; flex-direction:column; gap:12px;">
-                                ${top3.map((p, idx) => `
-                                    <div style="background:white; padding:16px; border-radius:8px; border:1px solid #E5E7EB; box-shadow:var(--shadow-sm);">
-                                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                                            <span style="font-size:12px; font-weight:700; color:var(--primary); text-transform:uppercase;">Priority ${idx+1}</span>
-                                            <span style="font-size:12px; font-weight:600; color:var(--text-muted);">GAP ${p.gap.toFixed(0)}</span>
-                                        </div>
-                                        <div style="font-weight:600; font-size:15px;">${p.text}</div>
-                                        <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">${p.domain}</div>
-                                    </div>
-                                `).join('')}
+                        <div class="report-chart-area"><h4 style="margin:0 0 16px 0; color:var(--text-secondary);">내 역량 분석 (100점 만점)</h4><div style="width:100%; max-width:400px; aspect-ratio:1/1;"><canvas id="competencyRadar"></canvas></div></div>
+                        <div class="report-list-area"><h4 style="margin:0 0 16px 0; color:var(--text-secondary);">학습 우선순위 Top 3</h4><div style="display:flex; flex-direction:column; gap:12px;">
+                                ${top3.map((p, idx) => `<div style="background:white; padding:16px; border-radius:8px; border:1px solid #E5E7EB; box-shadow:var(--shadow-sm);"><div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span style="font-size:12px; font-weight:700; color:var(--primary); text-transform:uppercase;">Priority ${idx+1}</span><span style="font-size:12px; font-weight:600; color:var(--text-muted);">GAP ${p.gap.toFixed(0)}</span></div><div style="font-weight:600; font-size:15px;">${p.text}</div><div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">${p.domain}</div></div>`).join('')}
                                 ${top3.length === 0 ? '<div style="padding:10px; color:var(--text-muted);">보완이 필요한 역량이 없습니다. 훌륭합니다!</div>' : ''}
                             </div>
                         </div>
@@ -1179,14 +1120,10 @@
                 </div>
             `;
 
-            // Initialize Chart after DOM is ready
             setTimeout(() => {
                 const ctx = document.getElementById('competencyRadar');
                 if (ctx) {
-                    if (this.state.radarChart) {
-                        this.state.radarChart.destroy();
-                    }
-                    
+                    if (this.state.radarChart) this.state.radarChart.destroy();
                     this.state.radarChart = new Chart(ctx, {
                         type: 'radar',
                         data: {
@@ -1199,8 +1136,6 @@
                                 borderColor: '#111827',
                                 pointBackgroundColor: '#111827',
                                 pointBorderColor: '#fff',
-                                pointHoverBackgroundColor: '#fff',
-                                pointHoverBorderColor: '#111827',
                                 pointRadius: 4
                             }]
                         },
@@ -1208,46 +1143,20 @@
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
-                            animation: false, // Disable animation for PDF export stability
+                            animation: false,
                             scales: {
                                 r: {
-                                    angleLines: {
-                                        color: '#E5E7EB'
-                                    },
-                                    grid: {
-                                        color: '#E5E7EB'
-                                    },
-                                    pointLabels: {
-                                        color: '#111827',
-                                        font: {
-                                            size: 11,
-                                            weight: '600'
-                                        }
-                                    },
-                                    suggestedMin: 0,
-                                    suggestedMax: 100,
-                                    ticks: {
-                                        display: false, // Hide ticks
-                                        stepSize: 20
-                                    }
+                                    angleLines: { color: '#E5E7EB' },
+                                    grid: { color: '#E5E7EB' },
+                                    pointLabels: { color: '#111827', font: { size: 11, weight: '600' } },
+                                    suggestedMin: 0, suggestedMax: 100,
+                                    ticks: { display: false, stepSize: 20 }
                                 }
                             },
                             plugins: {
-                                legend: {
-                                    display: false
-                                },
-                                datalabels: {
-                                    color: '#111827',
-                                    font: { weight: '800', size: 14 },
-                                    align: 'end',
-                                    anchor: 'end',
-                                    offset: 2,
-                                    formatter: Math.round,
-                                    // Removed backgroundColor, borderColor, borderWidth
-                                },
-                                tooltip: {
-                                    enabled: false // Disable tooltips as labels are always visible
-                                }
+                                legend: { display: false },
+                                datalabels: { color: '#111827', font: { weight: '800', size: 14 }, align: 'end', anchor: 'end', formatter: Math.round },
+                                tooltip: { enabled: false }
                             }
                         }
                     });
@@ -1257,31 +1166,26 @@
 
         downloadPDF: function() {
             const element = document.getElementById('report-content');
-            
             if(element.querySelector('.report-empty-state')) {
                 alert("보고서가 완료되지 않아 저장할 수 없습니다.");
                 return;
             }
-
             const btn = document.querySelector('#view-report .btn-reset');
             const originalContent = btn.innerHTML;
             btn.innerHTML = "저장 중...";
-
             const opt = {
-                margin:       10,
-                filename:     'Presales_Compass_Report.pdf',
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                margin: 10,
+                filename: `Presales_Compass_${this.state.userName}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
-
             html2pdf().set(opt).from(element).save().then(() => {
                 btn.innerHTML = originalContent;
             });
         }
     };
 
-    // Start App
     document.addEventListener('DOMContentLoaded', () => {
         app.init();
     });
