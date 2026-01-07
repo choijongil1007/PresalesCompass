@@ -112,22 +112,62 @@ const app = {
         }
         
         dashboard.innerHTML = users.map(user => {
+            const uScores = user.competencyScores || {};
             const sValues = Object.values(user.suitabilityScores || {});
             const sScore = sValues.length ? Math.round((sValues.reduce((a,b)=>a+b,0) / (11*5)) * 100) : 0;
             const lastUpdate = user.updatedAt ? new Date(user.updatedAt).toLocaleString() : '기록 없음';
+            
+            // 영역별 점수 계산
+            const domainScores = COMPETENCY_DATA.map(d => {
+                let s = 0, c = 0;
+                d.items.forEach(i => { if(uScores[i.id]) { s += uScores[i.id]; c++; } });
+                return { name: d.name.split('. ')[1], score: c === 0 ? 0 : Math.round((s / (d.items.length * 5)) * 100) };
+            });
+
+            // 우선순위 계산
+            const top3 = this.getTopPriorities(uScores);
             
             return `
                 <div class="admin-card">
                     <button class="admin-delete-btn" title="삭제" onclick="app.deleteUser('${user.id}', '${user.userName}')">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
                     </button>
-                    <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
-                        <div class="avatar-circle" style="width:40px; height:40px; font-size:18px;">${(user.userName || '?').charAt(0).toUpperCase()}</div>
-                        <h3 style="margin:0; font-size:18px;">${user.userName || user.id}</h3>
+                    <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+                        <div class="avatar-circle" style="width:44px; height:44px; font-size:20px;">${(user.userName || '?').charAt(0).toUpperCase()}</div>
+                        <div>
+                            <h3 style="margin:0; font-size:18px;">${user.userName || user.id}</h3>
+                            <div class="admin-score-badge">업무 적합도 ${sScore}점</div>
+                        </div>
                     </div>
-                    <div class="admin-score-badge">업무 적합도 ${sScore}점</div>
-                    <div style="font-size:12px; color:var(--text-secondary); margin-top:16px; border-top:1px solid var(--border); padding-top:12px;">
-                        <strong>최종 업데이트</strong><br>${lastUpdate}
+
+                    <div style="margin-top:20px;">
+                        <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:10px;">영역별 점수 (도달률)</div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                            ${domainScores.map(ds => `
+                                <div style="font-size:12px; display:flex; justify-content:space-between; background:#F9FAFB; padding:6px 8px; border-radius:6px;">
+                                    <span style="color:var(--text-secondary); text-overflow:ellipsis; overflow:hidden; white-space:nowrap; max-width:80px;">${ds.name}</span>
+                                    <span style="font-weight:700; color:var(--primary);">${ds.score}%</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div style="margin-top:20px;">
+                        <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:10px;">학습 우선순위 TOP 3</div>
+                        ${top3.length ? `
+                            <div style="display:flex; flex-direction:column; gap:6px;">
+                                ${top3.map((p, i) => `
+                                    <div style="font-size:12px; display:flex; gap:8px; align-items:flex-start;">
+                                        <span style="font-weight:800; color:var(--text-muted);">0${i+1}</span>
+                                        <span style="font-weight:500; color:var(--text-main); line-height:1.4;">${p.text}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : `<div style="font-size:12px; color:var(--text-muted);">데이터 없음</div>`}
+                    </div>
+
+                    <div style="font-size:11px; color:var(--text-muted); margin-top:20px; border-top:1px solid var(--border); padding-top:12px; text-align:right;">
+                        최종 업데이트: ${lastUpdate}
                     </div>
                 </div>
             `;
@@ -283,10 +323,10 @@ const app = {
         if (txtEl) txtEl.innerText = `진행률 (${vals.length}/${total})`;
     },
 
-    getTopPriorities: function() {
+    getTopPriorities: function(scores = this.state.competencyScores) {
         const prios = [];
         COMPETENCY_DATA.forEach(d => d.items.forEach(i => {
-            const s = this.state.competencyScores[i.id];
+            const s = scores[i.id];
             if(s) { 
                 const gap = d.weight * i.importance * (i.importance - s); 
                 if(gap > 0) prios.push({ text: i.text, gap, domain: d.name }); 
