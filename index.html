@@ -115,7 +115,11 @@
         .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom:16px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .error-card { background: #FEF2F2; border: 1px solid #FEE2E2; padding: 32px; border-radius: 12px; max-width: 600px; color: #991B1B; font-size: 14px; line-height: 1.6; text-align: left; }
+        .report-section-title { font-size: 18px; font-weight: 700; margin: 24px 0 16px; padding-bottom: 8px; border-bottom: 2px solid var(--primary); color: var(--primary); }
+        .report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .report-summary-box { background: #F3F4F6; padding: 20px; border-radius: 12px; text-align: center; }
+        .report-summary-value { font-size: 28px; font-weight: 800; display: block; }
+        .report-summary-label { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -280,7 +284,6 @@
         },
 
         init: async function() {
-            // Maximum 3 seconds wait for Firebase before fallback
             let waitTime = 0;
             while (!window.firebaseDB && waitTime < 3000) {
                 await new Promise(r => setTimeout(r, 100));
@@ -289,14 +292,10 @@
 
             try {
                 this.state.uid = window.firebaseDB ? window.firebaseDB.getOrCreateUID() : 'local_guest';
-                
-                // Try load from Firebase
                 let userData = null;
                 if (window.firebaseDB) {
                     userData = await window.firebaseDB.loadUserData(this.state.uid);
                 }
-                
-                // Fallback to LocalStorage if Firebase fails or returns nothing
                 if (!userData) {
                     const local = localStorage.getItem('presales_local_data');
                     if (local) userData = JSON.parse(local);
@@ -325,7 +324,6 @@
                 }
             } catch (e) {
                 console.error("Init Error:", e);
-                // Last resort: Show app anyway even if data load failed completely
                 document.getElementById('loading-overlay').classList.add('hidden');
                 document.getElementById('view-onboarding').classList.remove('hidden');
             }
@@ -335,13 +333,11 @@
             this.state.isSyncing = syncing;
             const dot = document.getElementById('sync-dot');
             const text = document.getElementById('sync-text');
-            
             if (error) {
                 dot.className = 'sync-dot offline';
                 text.innerText = "오프라인 모드 (로컬 저장)";
                 return;
             }
-
             if (syncing) {
                 dot.className = 'sync-dot syncing';
                 text.innerText = "데이터 저장 중...";
@@ -352,7 +348,6 @@
         },
 
         saveData: async function() {
-            // Save to LocalStorage first (Always works)
             const localData = {
                 userName: this.state.userName,
                 suitabilityScores: this.state.suitabilityScores,
@@ -360,16 +355,13 @@
                 updatedAt: new Date().toISOString()
             };
             localStorage.setItem('presales_local_data', JSON.stringify(localData));
-
-            // Then try Firebase
             if (window.firebaseDB) {
                 this.setSyncing(true);
                 try {
                     await window.firebaseDB.saveUserData(this.state.uid, localData);
                     this.setSyncing(false);
                 } catch (e) {
-                    console.warn("Firebase Sync Failed:", e);
-                    this.setSyncing(false, true); // Mark as offline mode
+                    this.setSyncing(false, true);
                 }
             } else {
                 this.setSyncing(false, true);
@@ -378,13 +370,10 @@
 
         submitName: async function() {
             const input = document.getElementById('user-name-input');
-            const btn = document.getElementById('btn-onboarding-start');
             const name = input.value.trim();
             if (!name) return;
-            
             this.state.userName = name;
             await this.saveData();
-            
             this.updateUserUI();
             document.getElementById('view-onboarding').classList.add('hidden');
             document.getElementById('app').classList.remove('hidden');
@@ -416,12 +405,10 @@
             document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
             const menuBtn = document.getElementById(`menu-${viewName}`);
             if (menuBtn) menuBtn.classList.add('active');
-            
             document.getElementById('view-suitability').classList.add('hidden');
             document.getElementById('view-competency').classList.add('hidden');
             document.getElementById('view-report').classList.add('hidden');
             document.getElementById(`view-${viewName}`).classList.remove('hidden');
-            
             if (viewName === 'report') this.renderReport();
         },
 
@@ -483,10 +470,8 @@
             const values = Object.values(this.state.suitabilityScores);
             const filledCount = values.length;
             const sum = values.reduce((a, b) => a + b, 0);
-            
-            const scorePercent = filledCount === 0 ? 0 : Math.round((sum / (totalItems * 5)) * 100);
+            const scorePercent = totalItems === 0 ? 0 : Math.round((sum / (totalItems * 5)) * 100);
             const progressPercent = Math.round((filledCount / totalItems) * 100);
-            
             document.getElementById('suitability-total-score').innerText = scorePercent;
             document.getElementById('suitability-progress-text').innerText = `진행률 (${filledCount}/${totalItems})`;
             document.getElementById('suitability-progress-percent').innerText = `${progressPercent}%`;
@@ -527,6 +512,21 @@
         },
 
         updateCompetencyAnalysis: function() {
+            const prios = this.getPriorityItems();
+            const section = document.getElementById('priority-section');
+            const list = document.getElementById('priority-list');
+            if(prios.length > 0) {
+                section.classList.remove('hidden');
+                list.innerHTML = prios.map((p, idx) => `
+                    <div class="card-premium priority-card">
+                        <div style="font-size:11px; font-weight:800; color:var(--primary); margin-bottom:4px;">RANK ${idx+1}</div>
+                        <div style="font-weight:600; font-size:14px; margin-bottom:8px; line-height:1.4;">${p.text}</div>
+                        <div style="font-size:12px; color:var(--text-muted);">${p.domain}</div>
+                    </div>`).join('');
+            } else section.classList.add('hidden');
+        },
+
+        getPriorityItems: function() {
             const prios = [];
             COMPETENCY_DATA.forEach(d => d.items.forEach(i => {
                 const s = this.state.competencyScores[i.id];
@@ -536,18 +536,7 @@
                 }
             }));
             prios.sort((a,b) => b.gap - a.gap);
-            const top3 = prios.slice(0,3);
-            const section = document.getElementById('priority-section');
-            const list = document.getElementById('priority-list');
-            if(top3.length > 0) {
-                section.classList.remove('hidden');
-                list.innerHTML = top3.map((p, idx) => `
-                    <div class="card-premium priority-card">
-                        <div style="font-size:11px; font-weight:800; color:var(--primary); margin-bottom:4px;">RANK ${idx+1}</div>
-                        <div style="font-weight:600; font-size:14px; margin-bottom:8px; line-height:1.4;">${p.text}</div>
-                        <div style="font-size:12px; color:var(--text-muted);">${p.domain}</div>
-                    </div>`).join('');
-            } else section.classList.add('hidden');
+            return prios.slice(0,3);
         },
 
         resetCompetency: async function() {
@@ -562,23 +551,86 @@
         renderReport: function() {
             const container = document.getElementById('report-content');
             container.innerHTML = `<div class="card-premium" style="padding:40px; text-align:center;">리포트를 생성 중입니다...</div>`;
+            
+            // Calculate suitability summary
+            const suitabilityValues = Object.values(this.state.suitabilityScores);
+            const totalSuitabilityItems = 11;
+            const suitabilitySum = suitabilityValues.reduce((a,b) => a+b, 0);
+            const suitabilityScore = totalSuitabilityItems === 0 ? 0 : Math.round((suitabilitySum / (totalSuitabilityItems * 5)) * 100);
+
+            // Calculate category scores for suitability
+            const suitabilityCategories = SUITABILITY_DATA.map(cat => {
+                let sum = 0;
+                let count = 0;
+                cat.items.forEach(i => {
+                    if (this.state.suitabilityScores[i.id]) {
+                        sum += this.state.suitabilityScores[i.id];
+                        count++;
+                    }
+                });
+                return { 
+                    title: cat.title.split('. ')[1] || cat.title, 
+                    score: count === 0 ? 0 : Math.round((sum / (cat.items.length * 5)) * 100)
+                };
+            });
+
+            const priorityItems = this.getPriorityItems();
+
             setTimeout(() => {
                 container.innerHTML = `
-                    <div class="card-premium" style="padding:40px;">
-                        <h2 style="margin-top:0;">${this.state.userName}님의 프리세일즈 역량 진단 리포트</h2>
-                        <p style="color:var(--text-secondary); margin-bottom:32px;">현재 진단 데이터를 기반으로 분석된 역량 레이더 차트입니다.</p>
-                        <div style="max-width:500px; margin: 0 auto;">
+                    <div class="card-premium" style="padding:48px;">
+                        <div style="text-align:center; margin-bottom:40px;">
+                            <h2 style="margin:0 0 8px 0; font-size:28px;">프리세일즈 역량 진단 리포트</h2>
+                            <p style="color:var(--text-secondary); margin:0;">대상자: ${this.state.userName}님 | 진단일: ${new Date().toLocaleDateString()}</p>
+                        </div>
+
+                        <div class="report-section-title">1. 업무 적합성 진단 결과</div>
+                        <div class="report-grid" style="margin-bottom:32px;">
+                            <div class="report-summary-box">
+                                <span class="report-summary-value">${suitabilityScore}점</span>
+                                <span class="report-summary-label">종합 업무 적합도</span>
+                            </div>
+                            <div style="display:flex; flex-direction:column; gap:8px;">
+                                ${suitabilityCategories.map(cat => `
+                                    <div>
+                                        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
+                                            <span>${cat.title}</span>
+                                            <span style="font-weight:700;">${cat.score}%</span>
+                                        </div>
+                                        <div style="height:6px; background:#E5E7EB; border-radius:3px; overflow:hidden;">
+                                            <div style="width:${cat.score}%; height:100%; background:var(--primary);"></div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <div class="report-section-title">2. 역량 레이더 분석</div>
+                        <div style="max-width:450px; margin: 0 auto 40px;">
                             <canvas id="reportChart"></canvas>
                         </div>
+
+                        <div class="report-section-title">3. 중점 학습 우선순위 (Top 3)</div>
+                        ${priorityItems.length > 0 ? `
+                            <div class="priority-grid">
+                                ${priorityItems.map((p, idx) => `
+                                    <div class="card-premium priority-card" style="box-shadow:none; border:1px solid var(--border);">
+                                        <div style="font-size:11px; font-weight:800; color:var(--primary); margin-bottom:4px;">RANK ${idx+1}</div>
+                                        <div style="font-weight:600; font-size:14px; margin-bottom:8px; line-height:1.4;">${p.text}</div>
+                                        <div style="font-size:12px; color:var(--text-muted);">${p.domain}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : '<p style="text-align:center; color:var(--text-muted);">평가 데이터가 충분하지 않거나 보완할 역량이 없습니다.</p>'}
                     </div>
                 `;
                 const ctx = document.getElementById('reportChart');
                 new Chart(ctx, {
                     type: 'radar',
                     data: {
-                        labels: COMPETENCY_DATA.map(d => d.name),
+                        labels: COMPETENCY_DATA.map(d => d.name.split('. ')[1] || d.name),
                         datasets: [{
-                            label: '역량 지수 (100점 만점)',
+                            label: '역량 점수',
                             data: COMPETENCY_DATA.map(d => {
                                 let s = 0;
                                 let count = 0;
@@ -592,7 +644,10 @@
                             }),
                             borderColor: '#111827',
                             backgroundColor: 'rgba(17, 24, 39, 0.1)',
-                            pointBackgroundColor: '#111827'
+                            pointBackgroundColor: '#111827',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: '#111827'
                         }]
                     },
                     options: { 
@@ -600,9 +655,13 @@
                             r: { 
                                 suggestedMin: 0, 
                                 suggestedMax: 100,
-                                ticks: { stepSize: 20 }
+                                ticks: { stepSize: 20, display: false },
+                                grid: { color: '#E5E7EB' },
+                                angleLines: { color: '#E5E7EB' },
+                                pointLabels: { font: { size: 11, weight: '600' } }
                             } 
-                        } 
+                        },
+                        plugins: { legend: { display: false } }
                     }
                 });
             }, 500);
