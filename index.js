@@ -9,7 +9,9 @@ import {
   query,
   where,
   getDocs,
-  limit
+  deleteDoc,
+  limit,
+  orderBy
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -43,30 +45,14 @@ export const firebaseDB = {
     const docId = firebaseDB.sanitizeName(sanitizedName);
     
     try {
-      // 1단계: 직접 ID 조회 (최적화된 방식)
-      console.log(`[Firebase] Attempting direct fetch: docId="${docId}"`);
       const docRef = doc(db, "presales_users", docId);
       const docSnap = await getDoc(docRef);
-      
-      if (docSnap.exists()) {
-        console.log("[Firebase] Direct match found.");
-        return docSnap.data();
-      }
+      if (docSnap.exists()) return docSnap.data();
 
-      // 2단계: Fallback - userName 필드값으로 검색 (로직 변경 대응)
-      console.log(`[Firebase] Direct fetch failed. Searching by field: userName="${sanitizedName}"`);
       const usersRef = collection(db, "presales_users");
       const q = query(usersRef, where("userName", "==", sanitizedName), limit(1));
       const querySnapshot = await getDocs(q);
-      
-      if (!querySnapshot.empty) {
-        const data = querySnapshot.docs[0].data();
-        console.log("[Firebase] Match found via query fallback:", data);
-        return data;
-      }
-
-      console.log("[Firebase] No data found for user:", sanitizedName);
-      return null;
+      return !querySnapshot.empty ? querySnapshot.docs[0].data() : null;
     } catch (error) {
       console.error("[Firebase] Load error:", error);
       return null;
@@ -79,9 +65,32 @@ export const firebaseDB = {
       const docId = firebaseDB.sanitizeName(name);
       const docRef = doc(db, "presales_users", docId);
       await setDoc(docRef, data, { merge: true });
-      console.log(`[Firebase] Saved as ID: ${docId}`);
     } catch (error) {
       console.error("[Firebase] Save error:", error);
+      throw error;
+    }
+  },
+
+  fetchAllUsers: async () => {
+    if (!db) return [];
+    try {
+      const usersRef = collection(db, "presales_users");
+      const q = query(usersRef, orderBy("updatedAt", "desc"));
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+      console.error("[Firebase] Fetch all error:", error);
+      return [];
+    }
+  },
+
+  deleteUser: async (docId) => {
+    if (!db) return;
+    try {
+      await deleteDoc(doc(db, "presales_users", docId));
+    } catch (error) {
+      console.error("[Firebase] Delete error:", error);
+      throw error;
     }
   }
 };
