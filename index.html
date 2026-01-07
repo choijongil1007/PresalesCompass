@@ -330,7 +330,6 @@
                 
                 this.state.userName = name;
                 
-                // 데이터 주입 (Spread operator로 명시적 복사)
                 if (userData) {
                     this.state.suitabilityScores = { ...(userData.suitabilityScores || {}) };
                     this.state.competencyScores = { ...(userData.competencyScores || {}) };
@@ -341,14 +340,12 @@
                     console.log(`[App] New Session: No existing data for ${name}`);
                 }
 
-                // UI 전역 업데이트
                 this.updateUserUI();
                 this.renderSuitabilityChecklist();
                 this.updateSuitabilityStats();
                 this.renderCompetencyTable();
                 this.updateCompetencyAnalysis();
 
-                // 화면 전환
                 document.getElementById('view-onboarding').classList.add('hidden');
                 document.getElementById('app').classList.remove('hidden');
                 this.navigate('suitability');
@@ -415,8 +412,6 @@
             
             if (viewName === 'report') this.renderReport();
         },
-
-        // --- Render Helpers ---
 
         generateSliderHTML: function(id, score, isSelected, type) {
             const changeHandler = type === 'suitability' ? `app.setSuitabilityScore` : `app.setCompetencyScore`;

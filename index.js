@@ -4,7 +4,12 @@ import {
   getFirestore, 
   doc, 
   getDoc, 
-  setDoc 
+  setDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+  limit
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -21,40 +26,47 @@ let db;
 try {
     const app = initializeApp(firebaseConfig);
     db = getFirestore(app);
-    console.log("Firebase initialized successfully.");
+    console.log("[Firebase] Initialized successfully.");
 } catch (e) {
-    console.error("Firebase 초기화 실패:", e);
+    console.error("[Firebase] Initialization failed:", e);
 }
 
 export const firebaseDB = {
-  // 공백 제거 및 소문자화하여 문서 ID 생성
   sanitizeName: (name) => {
     if (!name) return "";
-    // 한글 이름의 경우 소문자화는 의미 없으나 영문 혼용 대비 유지
-    const sanitized = name.trim().replace(/\s+/g, '_').toLowerCase();
-    return sanitized;
+    return name.trim().replace(/\s+/g, '_').toLowerCase();
   },
 
   loadUserData: async (name) => {
-    if (!db) {
-        console.error("Database connection missing.");
-        return null;
-    }
+    if (!db) return null;
+    const sanitizedName = name.trim();
+    const docId = firebaseDB.sanitizeName(sanitizedName);
+    
     try {
-      const docId = firebaseDB.sanitizeName(name);
-      console.log(`[Firebase] Loading data for ID: "${docId}" (Original: "${name}")`);
-      
+      // 1단계: 직접 ID 조회 (최적화된 방식)
+      console.log(`[Firebase] Attempting direct fetch: docId="${docId}"`);
       const docRef = doc(db, "presales_users", docId);
       const docSnap = await getDoc(docRef);
       
       if (docSnap.exists()) {
-        const data = docSnap.data();
-        console.log("[Firebase] Data found:", data);
-        return data;
-      } else {
-        console.log("[Firebase] No existing document found for ID:", docId);
-        return null;
+        console.log("[Firebase] Direct match found.");
+        return docSnap.data();
       }
+
+      // 2단계: Fallback - userName 필드값으로 검색 (로직 변경 대응)
+      console.log(`[Firebase] Direct fetch failed. Searching by field: userName="${sanitizedName}"`);
+      const usersRef = collection(db, "presales_users");
+      const q = query(usersRef, where("userName", "==", sanitizedName), limit(1));
+      const querySnapshot = await getDocs(q);
+      
+      if (!querySnapshot.empty) {
+        const data = querySnapshot.docs[0].data();
+        console.log("[Firebase] Match found via query fallback:", data);
+        return data;
+      }
+
+      console.log("[Firebase] No data found for user:", sanitizedName);
+      return null;
     } catch (error) {
       console.error("[Firebase] Load error:", error);
       return null;
@@ -67,7 +79,7 @@ export const firebaseDB = {
       const docId = firebaseDB.sanitizeName(name);
       const docRef = doc(db, "presales_users", docId);
       await setDoc(docRef, data, { merge: true });
-      console.log(`[Firebase] Data saved successfully for ID: ${docId}`);
+      console.log(`[Firebase] Saved as ID: ${docId}`);
     } catch (error) {
       console.error("[Firebase] Save error:", error);
     }
