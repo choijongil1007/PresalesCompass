@@ -184,7 +184,6 @@
         </nav>
 
         <main class="main">
-            <!-- 기존 뷰 컨텐츠 생략 - 이전과 동일하게 유지 -->
             <div id="view-suitability">
                 <div class="page-header">
                     <div>
@@ -317,21 +316,27 @@
             btn.innerText = "데이터 복구 중...";
             this.setSyncing(true);
 
+            // index.js가 로드되어 window.firebaseDB가 설정될 때까지 대기
+            let retry = 0;
+            while (!window.firebaseDB && retry < 20) {
+                await new Promise(r => setTimeout(r, 100));
+                retry++;
+            }
+
             try {
-                // Firebase에서 해당 이름의 데이터 로드 시도
+                if (!window.firebaseDB) throw new Error("Firebase DB module not loaded");
+
                 const userData = await window.firebaseDB.loadUserData(name);
                 
                 this.state.userName = name;
                 if (userData) {
-                    // 기존 데이터가 있으면 복구
                     this.state.suitabilityScores = userData.suitabilityScores || {};
                     this.state.competencyScores = userData.competencyScores || {};
-                    console.log(`${name}님의 기존 데이터를 성공적으로 불러왔습니다.`);
+                    console.log("기존 데이터 로드 완료:", name);
                 } else {
-                    // 새 사용자면 초기화
                     this.state.suitabilityScores = {};
                     this.state.competencyScores = {};
-                    console.log(`새로운 나침반 세션(${name})을 시작합니다.`);
+                    console.log("신규 사용자 생성:", name);
                 }
 
                 this.updateUserUI();
@@ -348,10 +353,7 @@
             } catch (e) {
                 console.error("Login failed:", e);
                 this.setSyncing(false, true);
-                alert("네트워크 상태를 확인해주세요. 오프라인 모드로 시작합니다.");
-                this.state.userName = name;
-                document.getElementById('view-onboarding').classList.add('hidden');
-                document.getElementById('app').classList.remove('hidden');
+                alert("로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
             } finally {
                 btn.disabled = false;
                 btn.innerText = "나침반 시작하기";
@@ -391,7 +393,7 @@
         },
 
         logout: function() {
-            if (confirm("로그아웃 하시겠습니까? 입력한 데이터는 저장되어 같은 이름으로 로그인 시 다시 볼 수 있습니다.")) {
+            if (confirm("로그아웃 하시겠습니까?")) {
                 location.reload();
             }
         },
@@ -408,7 +410,6 @@
             if (viewName === 'report') this.renderReport();
         },
 
-        // --- Logic remains same for Checklist, Table, and Report ---
         generateSliderHTML: function(id, score, isSelected, type) {
             const changeHandler = type === 'suitability' ? `app.setSuitabilityScore` : `app.setCompetencyScore`;
             return `

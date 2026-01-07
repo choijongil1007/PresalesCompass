@@ -26,37 +26,48 @@ try {
 }
 
 export const firebaseDB = {
-  // 이름을 문서 ID로 쓰기 좋게 정규화 (공백 제거, 소문자화 등)
+  // 이름을 문서 ID로 사용하기 위해 정규화 (공백 제거, 소문자화)
   sanitizeName: (name) => {
+    if (!name) return "";
     return name.trim().replace(/\s+/g, '_').toLowerCase();
   },
 
-  // 이름(ID)으로 기존 데이터 불러오기
+  // 이름으로 기존 데이터 불러오기
   loadUserData: async (name) => {
-    if (!db) return null;
+    if (!db) {
+        console.error("데이터베이스가 초기화되지 않았습니다.");
+        return null;
+    }
     try {
       const docId = firebaseDB.sanitizeName(name);
+      console.log(`불러오기 시도 - ID: ${docId}`);
       const docRef = doc(db, "presales_users", docId);
       const docSnap = await getDoc(docRef);
+      
       if (docSnap.exists()) {
-        return docSnap.data();
+        const data = docSnap.data();
+        console.log("기존 데이터 발견:", data);
+        return data;
+      } else {
+        console.log("기존 데이터가 없습니다. 새로운 사용자로 처리합니다.");
+        return null;
       }
-      return null;
     } catch (error) {
-      console.warn("Firebase 데이터 로드 실패:", error.message);
+      console.error("Firebase 데이터 로드 오류:", error);
       return null;
     }
   },
 
-  // 이름(ID)으로 데이터 저장하기
+  // 데이터 저장하기
   saveUserData: async (name, data) => {
     if (!db) return;
     try {
       const docId = firebaseDB.sanitizeName(name);
       const docRef = doc(db, "presales_users", docId);
       await setDoc(docRef, data, { merge: true });
+      console.log(`저장 완료 - ID: ${docId}`);
     } catch (error) {
-      console.error("Firebase 데이터 저장 실패:", error.message);
+      console.error("Firebase 데이터 저장 오류:", error);
     }
   }
 };
