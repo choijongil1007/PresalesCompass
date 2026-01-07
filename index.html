@@ -552,13 +552,11 @@
             const container = document.getElementById('report-content');
             container.innerHTML = `<div class="card-premium" style="padding:40px; text-align:center;">리포트를 생성 중입니다...</div>`;
             
-            // Calculate suitability summary
             const suitabilityValues = Object.values(this.state.suitabilityScores);
             const totalSuitabilityItems = 11;
             const suitabilitySum = suitabilityValues.reduce((a,b) => a+b, 0);
             const suitabilityScore = totalSuitabilityItems === 0 ? 0 : Math.round((suitabilitySum / (totalSuitabilityItems * 5)) * 100);
 
-            // Calculate category scores for suitability
             const suitabilityCategories = SUITABILITY_DATA.map(cat => {
                 let sum = 0;
                 let count = 0;
@@ -605,8 +603,8 @@
                             </div>
                         </div>
 
-                        <div class="report-section-title">2. 역량 레이더 분석</div>
-                        <div style="max-width:450px; margin: 0 auto 40px;">
+                        <div class="report-section-title">2. 역량 레이더 분석 (100점 환산)</div>
+                        <div style="max-width:520px; margin: 0 auto 40px; background: white; padding: 20px; border-radius: 12px;">
                             <canvas id="reportChart"></canvas>
                         </div>
 
@@ -625,43 +623,72 @@
                     </div>
                 `;
                 const ctx = document.getElementById('reportChart');
+                
+                // 데이터 환산 로직
+                const radarData = COMPETENCY_DATA.map(d => {
+                    let s = 0;
+                    let count = 0;
+                    d.items.forEach(i => {
+                        if(this.state.competencyScores[i.id]) {
+                            s += this.state.competencyScores[i.id];
+                            count++;
+                        }
+                    });
+                    return count === 0 ? 0 : Math.round((s / (d.items.length * 5)) * 100);
+                });
+
                 new Chart(ctx, {
                     type: 'radar',
+                    plugins: [ChartDataLabels],
                     data: {
                         labels: COMPETENCY_DATA.map(d => d.name.split('. ')[1] || d.name),
                         datasets: [{
                             label: '역량 점수',
-                            data: COMPETENCY_DATA.map(d => {
-                                let s = 0;
-                                let count = 0;
-                                d.items.forEach(i => {
-                                    if(this.state.competencyScores[i.id]) {
-                                        s += this.state.competencyScores[i.id];
-                                        count++;
-                                    }
-                                });
-                                return count === 0 ? 0 : (s / (d.items.length * 5)) * 100;
-                            }),
+                            data: radarData,
                             borderColor: '#111827',
                             backgroundColor: 'rgba(17, 24, 39, 0.1)',
+                            borderWidth: 2,
                             pointBackgroundColor: '#111827',
                             pointBorderColor: '#fff',
                             pointHoverBackgroundColor: '#fff',
-                            pointHoverBorderColor: '#111827'
+                            pointHoverBorderColor: '#111827',
+                            pointRadius: 4
                         }]
                     },
                     options: { 
+                        layout: { padding: { top: 20, bottom: 20 } },
                         scales: { 
                             r: { 
                                 suggestedMin: 0, 
-                                suggestedMax: 100,
+                                suggestedMax: 110, // 레이블 표시를 위해 약간의 여유 공간 확보
                                 ticks: { stepSize: 20, display: false },
                                 grid: { color: '#E5E7EB' },
                                 angleLines: { color: '#E5E7EB' },
-                                pointLabels: { font: { size: 11, weight: '600' } }
+                                pointLabels: { 
+                                    font: { size: 12, weight: '700' },
+                                    color: '#4B5563',
+                                    padding: 15
+                                }
                             } 
                         },
-                        plugins: { legend: { display: false } }
+                        plugins: { 
+                            legend: { display: false },
+                            datalabels: {
+                                backgroundColor: 'rgba(17, 24, 39, 0.85)',
+                                borderRadius: 4,
+                                color: '#fff',
+                                font: {
+                                    size: 10,
+                                    weight: '800'
+                                },
+                                padding: { top: 4, bottom: 4, left: 6, right: 6 },
+                                anchor: 'end',
+                                align: 'top',
+                                offset: 8,
+                                formatter: (value) => value > 0 ? value : '',
+                                display: (context) => context.dataset.data[context.dataIndex] > 0
+                            }
+                        }
                     }
                 });
             }, 500);
@@ -680,7 +707,6 @@
         }
     };
 
-    // Global initialization
     window.app = app;
     document.addEventListener('DOMContentLoaded', () => app.init());
     </script>
