@@ -26,11 +26,12 @@ try {
 }
 
 export const firebaseDB = {
-  // 이제 UID 대신 이름을 직접 ID로 사용하거나, 이름을 기반으로 한 고유 ID 생성
+  // 이름을 문서 ID로 쓰기 좋게 정규화 (공백 제거, 소문자화 등)
   sanitizeName: (name) => {
     return name.trim().replace(/\s+/g, '_').toLowerCase();
   },
 
+  // 이름(ID)으로 기존 데이터 불러오기
   loadUserData: async (name) => {
     if (!db) return null;
     try {
@@ -42,20 +43,20 @@ export const firebaseDB = {
       }
       return null;
     } catch (error) {
-      console.warn("Firebase 로드 실패:", error.message);
+      console.warn("Firebase 데이터 로드 실패:", error.message);
       return null;
     }
   },
 
+  // 이름(ID)으로 데이터 저장하기
   saveUserData: async (name, data) => {
-    if (!db) throw new Error("Database not initialized");
+    if (!db) return;
     try {
       const docId = firebaseDB.sanitizeName(name);
       const docRef = doc(db, "presales_users", docId);
       await setDoc(docRef, data, { merge: true });
     } catch (error) {
-      console.error("Firebase 저장 실패:", error.message);
-      throw error;
+      console.error("Firebase 데이터 저장 실패:", error.message);
     }
   }
 };
