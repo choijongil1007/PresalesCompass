@@ -126,7 +126,7 @@
     <div id="loading-overlay">
         <div id="loading-spinner" class="spinner"></div>
         <div id="loading-content">
-            <p style="font-weight:600; color:var(--text-secondary)">데이터를 불러오고 있습니다...</p>
+            <p style="font-weight:600; color:var(--text-secondary)">엔진을 예열하고 있습니다...</p>
         </div>
     </div>
 
@@ -136,8 +136,8 @@
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
             </div>
             <h1 style="font-size: 24px; margin-bottom: 8px;">Presales Compass</h1>
-            <p style="color: var(--text-secondary); margin-bottom: 32px; font-size: 15px;">나침반을 사용하기 위해 성함을 알려주세요.</p>
-            <input type="text" id="user-name-input" class="onboarding-input" placeholder="성함 또는 닉네임 입력" maxlength="20" onkeyup="if(event.key === 'Enter') app.submitName()">
+            <p style="color: var(--text-secondary); margin-bottom: 32px; font-size: 15px;">나침반을 사용하기 위해 성함을 입력하세요.<br><small>(기존 사용자는 이전 데이터가 자동 로드됩니다)</small></p>
+            <input type="text" id="user-name-input" class="onboarding-input" placeholder="성함 입력" maxlength="20" onkeyup="if(event.key === 'Enter') app.submitName()">
             <button id="btn-onboarding-start" class="btn-primary" onclick="app.submitName()">나침반 시작하기</button>
         </div>
     </div>
@@ -173,7 +173,7 @@
                     <div id="user-avatar" class="avatar-circle">?</div>
                     <div>
                         <div id="user-name-display" style="font-weight: 600; font-size: 14px;">사용자</div>
-                        <div style="font-size: 11px; color: var(--text-muted); cursor: pointer;" onclick="app.resetUser()">이름 수정</div>
+                        <div style="font-size: 11px; color: var(--text-muted); cursor: pointer;" onclick="app.logout()">로그아웃 (계정 변경)</div>
                     </div>
                 </div>
                 <div class="sync-status">
@@ -255,7 +255,7 @@
     <script type="module" src="index.js"></script>
 
     <script>
-    // Constants
+    // Constants (Data remains the same)
     const SUITABILITY_DATA = [
         { id: "tech", title: "1. 기술 역량", items: [{ id: "t1", text: "새로운 기술을 배우고 문제를 해결하는 데 흥미를 느낀다." }, { id: "t2", text: "최신 기술 및 업계 동향을 지속적으로 학습하고 있다." }, { id: "t3", text: "RFP, 제안서, PoC 보고서 등의 문서를 작성하는 것이 익숙하다." }] },
         { id: "biz", title: "2. 비즈니스 및 고객 대응", items: [{ id: "b1", text: "고객이 원하는 가치를 이해하고, 비즈니스적 관점에서 솔루션을 고민할 수 있다." }, { id: "b2", text: "기업의 성장을 위해 좋은 제품을 만드는 것만큼 판매가 중요하다고 생각한다." }, { id: "b3", text: "고객이 명확하게 정의하지 않은 요구사항을 파악하고, 최적의 솔루션을 제안할 수 있다." }, { id: "b4", text: "고객과 신뢰를 구축하며, 협업을 원활하게 진행할 수 있다." }] },
@@ -273,60 +273,20 @@
 
     const app = {
         state: {
-            uid: '',
             userName: '',
             view: 'suitability',
             suitabilityScores: {},
             competencyScores: {},
             radarChart: null,
-            isSyncing: false,
-            isOffline: false
+            isSyncing: false
         },
 
         init: async function() {
-            let waitTime = 0;
-            while (!window.firebaseDB && waitTime < 3000) {
-                await new Promise(r => setTimeout(r, 100));
-                waitTime += 100;
-            }
-
-            try {
-                this.state.uid = window.firebaseDB ? window.firebaseDB.getOrCreateUID() : 'local_guest';
-                let userData = null;
-                if (window.firebaseDB) {
-                    userData = await window.firebaseDB.loadUserData(this.state.uid);
-                }
-                if (!userData) {
-                    const local = localStorage.getItem('presales_local_data');
-                    if (local) userData = JSON.parse(local);
-                }
-
-                if (userData) {
-                    this.state.userName = userData.userName || '';
-                    this.state.suitabilityScores = userData.suitabilityScores || {};
-                    this.state.competencyScores = userData.competencyScores || {};
-                }
-
-                this.updateUserUI();
-                this.renderSuitabilityChecklist();
-                this.updateSuitabilityStats();
-                this.renderCompetencyTable();
-                this.updateCompetencyAnalysis();
-
-                document.getElementById('loading-overlay').classList.add('hidden');
-                
-                if (!this.state.userName) {
-                    document.getElementById('view-onboarding').classList.remove('hidden');
-                    document.getElementById('app').classList.add('hidden');
-                } else {
-                    document.getElementById('app').classList.remove('hidden');
-                    this.navigate('suitability');
-                }
-            } catch (e) {
-                console.error("Init Error:", e);
-                document.getElementById('loading-overlay').classList.add('hidden');
-                document.getElementById('view-onboarding').classList.remove('hidden');
-            }
+            // 접속 시 항상 온보딩(로그인) 화면 노출
+            document.getElementById('loading-overlay').classList.add('hidden');
+            document.getElementById('view-onboarding').classList.remove('hidden');
+            document.getElementById('app').classList.add('hidden');
+            document.getElementById('user-name-input').focus();
         },
 
         setSyncing: function(syncing, error = false) {
@@ -340,44 +300,82 @@
             }
             if (syncing) {
                 dot.className = 'sync-dot syncing';
-                text.innerText = "데이터 저장 중...";
+                text.innerText = "데이터 불러오는 중...";
             } else {
                 dot.className = 'sync-dot';
                 text.innerText = "클라우드 동기화 됨";
             }
         },
 
+        submitName: async function() {
+            const input = document.getElementById('user-name-input');
+            const btn = document.getElementById('btn-onboarding-start');
+            const name = input.value.trim();
+            if (!name) return;
+
+            btn.disabled = true;
+            btn.innerText = "데이터 확인 중...";
+            this.setSyncing(true);
+
+            try {
+                // Firebase에서 해당 이름의 데이터 로드 시도
+                const userData = await window.firebaseDB.loadUserData(name);
+                
+                this.state.userName = name;
+                if (userData) {
+                    // 기존 데이터가 있으면 복구
+                    this.state.suitabilityScores = userData.suitabilityScores || {};
+                    this.state.competencyScores = userData.competencyScores || {};
+                } else {
+                    // 새 사용자면 초기화
+                    this.state.suitabilityScores = {};
+                    this.state.competencyScores = {};
+                }
+
+                this.updateUserUI();
+                this.renderSuitabilityChecklist();
+                this.updateSuitabilityStats();
+                this.renderCompetencyTable();
+                this.updateCompetencyAnalysis();
+
+                document.getElementById('view-onboarding').classList.add('hidden');
+                document.getElementById('app').classList.remove('hidden');
+                this.navigate('suitability');
+                this.setSyncing(false);
+
+            } catch (e) {
+                console.error("Login failed:", e);
+                this.setSyncing(false, true);
+                alert("데이터를 불러오는 중 오류가 발생했습니다. 오프라인 모드로 시작합니다.");
+                
+                this.state.userName = name;
+                document.getElementById('view-onboarding').classList.add('hidden');
+                document.getElementById('app').classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "나침반 시작하기";
+            }
+        },
+
         saveData: async function() {
+            if (!this.state.userName) return;
+
             const localData = {
                 userName: this.state.userName,
                 suitabilityScores: this.state.suitabilityScores,
                 competencyScores: this.state.competencyScores,
                 updatedAt: new Date().toISOString()
             };
-            localStorage.setItem('presales_local_data', JSON.stringify(localData));
+            
             if (window.firebaseDB) {
                 this.setSyncing(true);
                 try {
-                    await window.firebaseDB.saveUserData(this.state.uid, localData);
+                    await window.firebaseDB.saveUserData(this.state.userName, localData);
                     this.setSyncing(false);
                 } catch (e) {
                     this.setSyncing(false, true);
                 }
-            } else {
-                this.setSyncing(false, true);
             }
-        },
-
-        submitName: async function() {
-            const input = document.getElementById('user-name-input');
-            const name = input.value.trim();
-            if (!name) return;
-            this.state.userName = name;
-            await this.saveData();
-            this.updateUserUI();
-            document.getElementById('view-onboarding').classList.add('hidden');
-            document.getElementById('app').classList.remove('hidden');
-            this.navigate('suitability');
         },
 
         updateUserUI: function() {
@@ -391,12 +389,9 @@
             }
         },
 
-        resetUser: async function() {
-            if (confirm("이름을 수정하시겠습니까?")) {
-                this.state.userName = '';
-                await this.saveData();
-                document.getElementById('view-onboarding').classList.remove('hidden');
-                document.getElementById('app').classList.add('hidden');
+        logout: function() {
+            if (confirm("로그아웃 하시겠습니까? 입력한 데이터는 이름 기반으로 저장되어 다시 로그인 시 불러올 수 있습니다.")) {
+                location.reload(); // 가장 깔끔하게 초기 상태로 회항
             }
         },
 
@@ -411,6 +406,8 @@
             document.getElementById(`view-${viewName}`).classList.remove('hidden');
             if (viewName === 'report') this.renderReport();
         },
+
+        // --- UI Rendering Helpers (Existing logic below remains same for functionality) ---
 
         generateSliderHTML: function(id, score, isSelected, type) {
             const changeHandler = type === 'suitability' ? `app.setSuitabilityScore` : `app.setCompetencyScore`;
@@ -624,7 +621,6 @@
                 `;
                 const ctx = document.getElementById('reportChart');
                 
-                // 데이터 환산 로직
                 const radarData = COMPETENCY_DATA.map(d => {
                     let s = 0;
                     let count = 0;
@@ -660,7 +656,7 @@
                         scales: { 
                             r: { 
                                 suggestedMin: 0, 
-                                suggestedMax: 110, // 레이블 표시를 위해 약간의 여유 공간 확보
+                                suggestedMax: 110,
                                 ticks: { stepSize: 20, display: false },
                                 grid: { color: '#E5E7EB' },
                                 angleLines: { color: '#E5E7EB' },
@@ -677,10 +673,7 @@
                                 backgroundColor: 'rgba(17, 24, 39, 0.85)',
                                 borderRadius: 4,
                                 color: '#fff',
-                                font: {
-                                    size: 10,
-                                    weight: '800'
-                                },
+                                font: { size: 10, weight: '800' },
                                 padding: { top: 4, bottom: 4, left: 6, right: 6 },
                                 anchor: 'end',
                                 align: 'top',

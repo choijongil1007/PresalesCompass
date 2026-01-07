@@ -26,35 +26,32 @@ try {
 }
 
 export const firebaseDB = {
-  getOrCreateUID: () => {
-    let uid = localStorage.getItem('presales_uid');
-    if (!uid) {
-      uid = 'user_' + Math.random().toString(36).substr(2, 9) + Date.now();
-      localStorage.setItem('presales_uid', uid);
-    }
-    return uid;
+  // 이제 UID 대신 이름을 직접 ID로 사용하거나, 이름을 기반으로 한 고유 ID 생성
+  sanitizeName: (name) => {
+    return name.trim().replace(/\s+/g, '_').toLowerCase();
   },
 
-  loadUserData: async (uid) => {
+  loadUserData: async (name) => {
     if (!db) return null;
     try {
-      const docRef = doc(db, "presales_users", uid);
+      const docId = firebaseDB.sanitizeName(name);
+      const docRef = doc(db, "presales_users", docId);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         return docSnap.data();
       }
       return null;
     } catch (error) {
-      console.warn("Firebase 로드 실패 (권한 또는 네트워크):", error.message);
-      // 에러를 던지지 않고 null을 반환하여 앱이 로컬 데이터로 동작하게 함
+      console.warn("Firebase 로드 실패:", error.message);
       return null;
     }
   },
 
-  saveUserData: async (uid, data) => {
+  saveUserData: async (name, data) => {
     if (!db) throw new Error("Database not initialized");
     try {
-      const docRef = doc(db, "presales_users", uid);
+      const docId = firebaseDB.sanitizeName(name);
+      const docRef = doc(db, "presales_users", docId);
       await setDoc(docRef, data, { merge: true });
     } catch (error) {
       console.error("Firebase 저장 실패:", error.message);
