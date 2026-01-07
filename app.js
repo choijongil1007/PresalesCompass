@@ -283,7 +283,7 @@ const app = {
         if (txtEl) txtEl.innerText = `진행률 (${vals.length}/${total})`;
     },
 
-    updateCompetencyAnalysis: function() {
+    getTopPriorities: function() {
         const prios = [];
         COMPETENCY_DATA.forEach(d => d.items.forEach(i => {
             const s = this.state.competencyScores[i.id];
@@ -293,8 +293,11 @@ const app = {
             }
         }));
         prios.sort((a,b) => b.gap - a.gap);
-        const top3 = prios.slice(0,3);
-        
+        return prios.slice(0,3);
+    },
+
+    updateCompetencyAnalysis: function() {
+        const top3 = this.getTopPriorities();
         const list = document.getElementById('priority-list');
         const section = document.getElementById('priority-section');
         if(top3.length) {
@@ -343,6 +346,12 @@ const app = {
         container.innerHTML = `<div class="card-premium" style="padding:40px; text-align:center; color:var(--text-secondary);">리포트를 생성하고 있습니다...</div>`;
         
         setTimeout(() => {
+            // 업무 적합성 점수 계산
+            const sTotal = 11;
+            const sVals = Object.values(this.state.suitabilityScores);
+            const suitabilityScore = sVals.length ? Math.round((sVals.reduce((a,b)=>a+b,0)/(sTotal*5))*100) : 0;
+
+            // 역량 차트 데이터 계산
             const radarLabels = COMPETENCY_DATA.map(d => d.name.split('. ')[1]);
             const radarData = COMPETENCY_DATA.map(d => {
                 let s = 0, c = 0;
@@ -355,28 +364,56 @@ const app = {
                 return c === 0 ? 0 : Math.round((s / (d.items.length * 5)) * 100);
             });
 
+            // 학습 우선순위 데이터
+            const top3 = this.getTopPriorities();
+
             container.innerHTML = `
                 <div class="card-premium" style="padding:48px;">
-                    <div style="text-align:center; margin-bottom:40px;">
-                        <div style="font-size:14px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px;">Presales Compass Analysis</div>
-                        <h2 style="font-size:32px; font-weight:800; margin:0;">${this.state.userName}님의 진단 리포트</h2>
-                        <div style="width:40px; height:4px; background:var(--primary); margin:24px auto 0;"></div>
+                    <div style="text-align:center; margin-bottom:48px;">
+                        <div style="font-size:14px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:12px;">Presales Compass Analysis</div>
+                        <h2 style="font-size:32px; font-weight:800; margin:0;">${this.state.userName}님의 종합 진단 리포트</h2>
+                        <div style="width:60px; height:4px; background:var(--primary); margin:24px auto 0;"></div>
                     </div>
-                    
-                    <div style="max-width:600px; margin: 0 auto;">
-                        <canvas id="reportChart"></canvas>
-                    </div>
-                    
-                    <div style="margin-top:48px; border-top:1px solid var(--border); padding-top:32px;">
-                        <h4 style="font-size:18px; margin-bottom:16px;">영역별 도달률</h4>
-                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:16px;">
-                            ${COMPETENCY_DATA.map((d, i) => `
-                                <div style="padding:16px; background:#F9FAFB; border-radius:12px; text-align:center;">
-                                    <div style="font-size:12px; color:var(--text-secondary); margin-bottom:4px;">${d.name.split('. ')[1]}</div>
-                                    <div style="font-size:24px; font-weight:800;">${radarData[i]}%</div>
-                                </div>
-                            `).join('')}
+
+                    <!-- 업무 적합성 점수 섹션 -->
+                    <div style="background:#F9FAFB; border-radius:16px; padding:32px; display:flex; align-items:center; justify-content:space-between; margin-bottom:40px; border:1px solid var(--border);">
+                        <div>
+                            <h3 style="margin:0 0 8px 0; font-size:18px;">업무 적합성 진단 결과</h3>
+                            <p style="margin:0; font-size:14px; color:var(--text-secondary);">프리세일즈 직무에 대한 심리적 및 태도적 정렬 수준입니다.</p>
                         </div>
+                        <div style="text-align:right;">
+                            <span style="font-size:48px; font-weight:800; color:var(--primary);">${suitabilityScore}</span>
+                            <span style="font-size:18px; color:var(--text-muted); font-weight:600;"> / 100점</span>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom:40px;">
+                        <h3 style="font-size:20px; font-weight:700; margin-bottom:24px; text-align:center;">역량별 분포 그래프</h3>
+                        <div style="max-width:560px; margin: 0 auto; position:relative;">
+                            <canvas id="reportChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- 학습 우선순위 섹션 -->
+                    <div style="margin-top:56px; border-top:2px solid var(--border); padding-top:40px;">
+                        <h3 style="font-size:20px; font-weight:700; margin-bottom:24px;">학습 우선순위 TOP 3 (Action Plan)</h3>
+                        ${top3.length ? `
+                            <div style="display:grid; grid-template-columns: 1fr; gap:16px;">
+                                ${top3.map((p, i) => `
+                                    <div style="display:flex; align-items:center; gap:20px; background:#fff; border:1px solid var(--border); border-radius:12px; padding:20px; border-left:6px solid ${i === 0 ? '#111827' : i === 1 ? '#4B5563' : '#9CA3AF'}">
+                                        <div style="font-size:20px; font-weight:800; color:var(--text-muted); width:40px;">0${i+1}</div>
+                                        <div style="flex:1;">
+                                            <div style="font-weight:700; font-size:16px; margin-bottom:2px;">${p.text}</div>
+                                            <div style="font-size:12px; color:var(--text-secondary);">${p.domain}</div>
+                                        </div>
+                                        <div style="text-align:right; min-width:80px;">
+                                            <div style="font-size:11px; font-weight:700; color:var(--text-muted);">집중 개선 GAP</div>
+                                            <div style="font-size:18px; font-weight:800; color:#EF4444;">${p.gap.toFixed(0)}</div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : '<div style="padding:20px; background:#F3F4F6; border-radius:12px; text-align:center; color:var(--text-secondary);">모든 역량 진단을 완료하면 우선순위가 표시됩니다.</div>'}
                     </div>
                 </div>
             `;
@@ -399,6 +436,7 @@ const app = {
                             pointHoverBorderColor: '#111827'
                         }]
                     },
+                    plugins: [ChartDataLabels],
                     options: { 
                         scales: { 
                             r: { 
@@ -407,10 +445,22 @@ const app = {
                                 ticks: { stepSize: 20, display: false },
                                 grid: { color: '#E5E7EB' },
                                 angleLines: { color: '#E5E7EB' },
-                                pointLabels: { font: { family: 'Inter', weight: '600', size: 13 } }
+                                pointLabels: { font: { family: 'Inter', weight: '600', size: 14 }, color: '#374151' }
                             } 
                         },
-                        plugins: { legend: { display: false } }
+                        plugins: { 
+                            legend: { display: false },
+                            datalabels: {
+                                color: '#111827',
+                                backgroundColor: '#fff',
+                                borderRadius: 4,
+                                font: { weight: '800', size: 11 },
+                                formatter: (value) => value + '%',
+                                padding: 4,
+                                offset: 8,
+                                align: 'end'
+                            }
+                        }
                     }
                 });
             }
